@@ -1,0 +1,34 @@
+packages:
+  - "stellar-id-client"
+  - "stellar-id-frontend"
+  - "stellar-id-frontend/demo"
+  - "stellar-id-docs"
+
+# Dependencies whose install scripts are reviewed and allowed to run.
+# esbuild: validates its platform binary (falls back to the optional dep).
+# core-js: prints funding info only.
+# @swc/core: validates its native binary (required by @docusaurus/faster).
+allowBuilds:
+  esbuild: true
+  core-js: true
+  "@swc/core": true
+minimumReleaseAgeExclude:
+  - "@storybook/builder-vite@10.6.2"
+  - "@storybook/react-dom-shim@10.6.2"
+  - "@storybook/react-vite@10.6.2"
+  - "@storybook/react@10.6.2"
+  - "@typescript-eslint/eslint-plugin@8.71.2"
+  - "@typescript-eslint/parser@8.71.2"
+  - "@typescript-eslint/project-service@8.71.2"
+  - "@typescript-eslint/scope-manager@8.71.2"
+  - "@typescript-eslint/tsconfig-utils@8.71.2"
+  - "@typescript-eslint/type-utils@8.71.2"
+  - "@typescript-eslint/types@8.71.2"
+  - "@typescript-eslint/typescript-estree@8.71.2"
+  - "@typescript-eslint/utils@8.71.2"
+  - "@typescript-eslint/visitor-keys@8.71.2"
+  - "@vitest/mocker@5.0.4"
+  - "@vitest/spy@5.0.4"
+  - storybook@10.6.2
+  - vitest@5.0.4
+  - typescript-eslint@8.71.2

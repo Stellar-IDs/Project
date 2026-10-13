@@ -1,0 +1,21 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "edit": "ask",
+    "bash": {
+      "*": "ask",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "cargo test*": "allow",
+      "cargo fmt*": "allow",
+      "cargo clippy*": "allow",
+      "pnpm lint*": "allow",
+      "pnpm typecheck*": "allow",
+      "pnpm test*": "allow",
+      "pnpm build*": "allow",
+      "git push*": "deny",
+      "rm -rf*": "deny"
+    }
+  }
+}

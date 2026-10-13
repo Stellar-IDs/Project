@@ -1,0 +1,24 @@
+# ---- Rust / Soroban ----
+target/
+
+# ---- Node / pnpm ----
+node_modules/
+dist/
+build/
+.next/
+out/
+storybook-static/
+.docusaurus/
+coverage/
+*.tsbuildinfo
+
+# ---- Env / secrets ----
+.env*
+!.env.example
+*.pem
+.stellar/
+
+# ---- OS / tooling ----
+.DS_Store
+*.log
+test_snapshots/

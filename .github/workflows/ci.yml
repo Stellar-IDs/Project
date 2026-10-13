@@ -1,0 +1,153 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      core: ${{ steps.filter.outputs.core }}
+      client: ${{ steps.filter.outputs.client }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      docs: ${{ steps.filter.outputs.docs }}
+      root: ${{ steps.filter.outputs.root }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            core:
+              - 'stellar-id-core/**'
+            client:
+              - 'stellar-id-client/**'
+            frontend:
+              - 'stellar-id-frontend/**'
+            docs:
+              - 'stellar-id-docs/**'
+            root:
+              - '.github/workflows/ci.yml'
+              - 'scripts/**'
+              - 'AGENTS.md'
+              - 'PLAYBOOK.md'
+              - 'package.json'
+              - 'pnpm-workspace.yaml'
+              - '.npmrc'
+
+  core:
+    needs: changes
+    if: needs.changes.outputs.core == 'true' || needs.changes.outputs.root == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: stellar-id-core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Stellar CLI
+        shell: bash
+        run: |
+          VERSION="$(curl -fsSL https://api.github.com/repos/stellar/soroban-cli/releases/latest | jq -r .tag_name | sed 's/^v//')"
+          curl -fsSL "https://github.com/stellar/soroban-cli/releases/download/v${VERSION}/stellar-cli-${VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
+            | tar -xz -C /tmp
+          sudo install -m 0755 /tmp/stellar /usr/local/bin/stellar
+          stellar version
+      - name: fmt
+        run: cargo fmt --check
+      - name: clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: test
+        run: cargo test
+      - name: audit
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+      - name: build wasm
+        run: stellar contract build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: identity-contract-wasm
+          path: stellar-id-core/target/wasm32v1-none/release/*.wasm
+
+  client:
+    needs: changes
+    if: needs.changes.outputs.client == 'true' || needs.changes.outputs.root == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22]
+    defaults:
+      run:
+        working-directory: stellar-id-client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.root == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: stellar-id-frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: build demo
+        run: pnpm --dir demo run build
+
+  docs:
+    needs: changes
+    if: needs.changes.outputs.docs == 'true' || needs.changes.outputs.root == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: stellar-id-docs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build

@@ -1,0 +1,17 @@
+{
+  "name": "stellar-identity-suite",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Monorepo for the Stellar Identity & Authentication Suite: stellar-id-core (Soroban contract), stellar-id-client (TypeScript SDK), stellar-id-frontend (React components), stellar-id-docs (Docusaurus). Split into four repositories after Phase 7.",
+  "packageManager": "pnpm@12.11.2",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "verify:core": "cd stellar-id-core && cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test && stellar contract build",
+    "verify:client": "pnpm --filter stellar-id-client run verify",
+    "verify:frontend": "pnpm --filter stellar-id-frontend run verify",
+    "verify:docs": "pnpm --filter stellar-id-docs run verify",
+    "verify": "pnpm verify:core && pnpm verify:client && pnpm verify:frontend && pnpm verify:docs"
+  }
+}
