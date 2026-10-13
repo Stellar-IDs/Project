@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: Install Stellar CLI
+        shell: bash
+        run: |
+          VERSION="$(curl -fsSL https://api.github.com/repos/stellar/soroban-cli/releases/latest | jq -r .tag_name | sed 's/^v//')"
+          curl -fsSL "https://github.com/stellar/soroban-cli/releases/download/v${VERSION}/stellar-cli-${VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
+            | tar -xz -C /tmp
+          sudo install -m 0755 /tmp/stellar /usr/local/bin/stellar
+          stellar version
+      - name: fmt
+        run: cargo fmt --check
+      - name: clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: test
+        run: cargo test
+      - name: audit
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+      - name: build wasm
+        run: stellar contract build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: identity-contract-wasm
+          path: target/wasm32v1-none/release/*.wasm

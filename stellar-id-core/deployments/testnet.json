@@ -1,0 +1,10 @@
+{
+  "network": "testnet",
+  "contractId": "",
+  "wasmHash": "",
+  "deployedAt": "",
+  "deployedBy": "",
+  "stellarCliVersion": "",
+  "sorobanSdkVersion": "",
+  "note": "Filled by the Phase 3 deployment. Testnet only; never mainnet."
+}
