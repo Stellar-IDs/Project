@@ -1,0 +1,17 @@
+[package]
+name = "stellar-id-core"
+description = "Soroban contract implementing the did:stellar DID method (Phase 0 scaffold)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["lib", "cdylib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
