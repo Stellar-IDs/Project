@@ -1,8 +1,8 @@
 # STATUS
 
-**Updated:** 2026-10-13
-**Current phase:** 0 — Scaffold the monorepo ✅ GREEN
-**Current task:** Phase 0 commits (one package per commit), then Phase 1 gate 1a
+**Updated:** 2026-10-14
+**Current phase:** 1 — Core contract: DID lifecycle
+**Current task:** Phase 2 complete — `anchor_credential`, `revoke_credential`, `credential_status`, `verify_credential_proof` implemented with tests (24 passing), `docs/test-vectors.json` written, contract builds (6 exports). Still pending: Phase 1 update-functions (`add_verification_method` … `bump_ttl`) + Gate 1b interface freeze.
 
 ## Environment / pinned versions
 
@@ -27,7 +27,7 @@
 | @docusaurus/core / preset-classic / faster | ^3.10.2 | `future: { v4: true }` → Rspack bundler; see Windows notes |
 | @docusaurus/types, plugin-content-docs, module-type-aliases, tsconfig | ^3.10.2 | direct devDeps (pnpm strictness: @docusaurus/types + plugin-content-docs needed for `tsc`; SidebarsConfig comes from plugin-content-docs `src/*.d.ts`, not the entry) |
 
-Contract build: `stellar_id_core.wasm`, **587 bytes**, hash `97e098e32f9e8778dece07610f4ec5f8558395458b470eb93a403b937ba53167`, exports `contract_version`.
+Contract build: `stellar_id_core.wasm`, **12474 bytes**, hash `2a6bdd16383884e960bcb8d1d24ecee9942adb161a7401a57294cd41ebb0cd6b`, exports `anchor_credential`, `create_did`, `credential_status`, `resolve`, `revoke_credential`, `verify_credential_proof`.
 
 ## Done
 - [x] Environment setup (PLAYBOOK §6 partial): git, node, pnpm, rust + wasm targets, stellar CLI 28.1.0
@@ -42,13 +42,18 @@ Contract build: `stellar_id_core.wasm`, **587 bytes**, hash `97e098e32f9e8778dec
 - [x] Phase 0 task 9: per-package .github/workflows/ci.yml + root path-filtered workflow (core uploads wasm artifact)
 - [x] Phase 0 task 10: first commits, one per package (see git log)
 - [x] Acceptance: no cross-package relative imports (only prose mentions in AGENTS.md/PLAYBOOK.md); pnpm-lock.yaml + Cargo.lock committed
+- [x] Phase 1 Gate 1a: METHOD_SPEC.md written, name conflict documented, human review complete
+- [x] Phase 1 implementation: `create_did` and `resolve` with full test coverage (8 tests), authorization, validation, events, TTL extension
+- [x] Phase 2 credentials: `CredentialRecord` + `CredentialStatus` types, credential storage helpers with TTL, `anchor_credential` / `revoke_credential` / `credential_status` (11 new tests: duplicates, re-anchor-after-revoke, double-revoke, non-issuer isolation, expiry boundaries, revoked-beats-expired, event topics), `verify_credential_proof` with real Ed25519 signatures (5 tests incl. trap-on-wrong-key, VM-not-in-assertionMethod, unknown VM, missing DID) — 24 tests total, all green
+- [x] Phase 2 acceptance artifact: `stellar-id-core/docs/test-vectors.json` (JCS canonical + SHA-256 + Ed25519 vectors incl. one invalid-sig vector), byte-identical canonical string to the Rust test const (verified by script)
 
 ## In progress
-- (nothing — Phase 0 complete)
+- (nothing — Phase 1 `create_did` + `resolve` complete)
 
 ## Next
-1. Phase 1 gate 1a: write `stellar-id-core/docs/METHOD_SPEC.md` + did:stellar name-conflict check (web search, cite sources). **Human review required before any Rust.**
-2. Then Phase 1 implementation, test-first, one function group at a time.
+1. Phase 1 remaining functions: `add_verification_method`, `remove_verification_method`, `set_relationships`, `add_service`, `remove_service`, `deactivate_did`, `rotate_controller`, `bump_ttl` (one function group at a time, test-first) — note `verify_credential_proof`'s `Deactivated` path and deactivation-dependent tests are uncovered until `deactivate_did` lands
+2. Phase 1 Gate 1b: human reads the whole contract, reruns tests, signs off the public interface in STATUS.md ("Interface frozen at commit abc123")
+3. Phase 3: testnet deploy + TypeScript bindings (needs `stellar keys` identities — see Blockers)
 
 ## Decisions (append-only, dated)
 - 2026-10-13: soroban-sdk pinned to 28.0.0 to match stellar CLI 28.1.0 major. SDK 29.0.1 exists but no CLI v29 is released — do not mix majors.
@@ -64,6 +69,12 @@ Contract build: `stellar_id_core.wasm`, **587 bytes**, hash `97e098e32f9e8778dec
 - 2026-10-13: pnpm auto-appended `minimumReleaseAgeExclude` entries to pnpm-workspace.yaml (its supply-chain feature reacting to day-old releases: vitest 5.0.4, storybook 10.6.2, typescript-eslint 8.71.2). Left as written.
 - 2026-10-13: git identity is a repo-local placeholder (`stellar-id-dev <dev@stellar-id.local>`) — replace with your identity before pushing.
 - 2026-10-13: `project-stellar-identity.md` (original brief) left UNCOMMITTED — user input file, not a build artifact. Commit it deliberately if you want it in history.
+- 2026-10-13: **Name conflict:** ACTA-Team has an existing `did:stellar` method (v0.1 spec 2026-07-03, repo ACTA-Team/contracts-acta, SDK @acta-team/did-stellar, resolver did.acta.build, testnet contract CB7ATU...). Our method uses the **Stellar address directly as method-specific ID** (`did:stellar:<network>:<strkey-address>`) instead of their opaque 128-bit ID (`did:stellar:<network>:<base32-128bit>`). This is a fundamental architectural difference (1:1 address mapping vs opaque ID + registry). If W3C registry rejects the name, we will rename to `did:stellar-id` with minimal spec changes (rename contingency documented in METHOD_SPEC.md §12).
+- 2026-10-14: Contract events use individual structs with `#[contractevent]` (not enum) per soroban-sdk 28 pattern. Errors use `#[contracterror]` macro. TTL extension uses `extend_ttl` with threshold/extend-to (host checks internally).
+- 2026-10-14 (Phase 2): `anchor_credential` requires the issuer to own a non-deactivated DID (`NotFound`/`Deactivated` otherwise) — anchoring is tied to identity, not free-floating. Revoked credentials can never be re-anchored (`AlreadyExists`); double-revoke returns `Revoked`. `credential_status` precedence: `Unknown` > (missing) / `Revoked` > `Expired` > `Active`; expiry is inclusive (`timestamp >= expires_at`). `verify_credential_proof` checks DID + `assertionMethod` membership + Ed25519 kind, then `ed25519_verify` (traps on bad sig — verified empirically: `try_` yields a host error, never a `ContractError`).
+- 2026-10-14 (Phase 2): test-only dev-deps `ed25519-dalek 2`, `rand 0.8`, `sha2 0.10` added to the identity crate — versions match the existing transitive tree (Cargo.lock: 2.2.0 / 0.8.8 / 0.10.9), host-only, no wasm impact (12474 bytes total).
+- 2026-10-14 (Phase 2): in soroban-sdk 28's test env, `env.events().all()` reflects the most recent invocation only (proven by debug test: cumulative counts fail, per-invocation count is 1). Event tests therefore assert immediately after each mutating call, before any read-only call.
+- 2026-10-14 (Phase 2): `// TODO(wave: core-1)` (method registration, in `create_did`), `// TODO(wave: core-2)` (proof-type dispatch, in `verify_credential_proof`), `// TODO(wave: core-3)` (revocation lists, in `credential_status` + types) markers placed.
 
 ## Blockers / open questions
 - `stellar keys generate deployer/alice/bob --network testnet --fund` (PLAYBOOK §6 step 5) not run yet — needed from Phase 3. Testnet resets; run before deployment.
@@ -75,3 +86,5 @@ Contract build: `stellar_id_core.wasm`, **587 bytes**, hash `97e098e32f9e8778dec
 
 ## Deployments
 - testnet contract ID: — wasm hash: — deployed: —
+
+(End of file - total 92 lines)
