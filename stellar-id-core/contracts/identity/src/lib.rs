@@ -213,6 +213,54 @@ impl IdentityContract {
         Ok(())
     }
 
+    /// Replace the `authentication` and `assertion_method` relationship lists.
+    ///
+    /// Requires authorization from `controller`. Every id in both lists must
+    /// reference an existing verification method, otherwise
+    /// `InvalidVerificationMethod`. Both lists are replaced wholesale (pass
+    /// the current list back with edits to add or drop a single entry).
+    /// Bumps `updated`/`version` and emits a `did/updated` event.
+    pub fn set_relationships(
+        env: Env,
+        controller: Address,
+        authentication: Vec<String>,
+        assertion_method: Vec<String>,
+    ) -> Result<(), ContractError> {
+        controller.require_auth();
+
+        let mut record = read_did_record(&env, &controller)?;
+        if record.controller != controller {
+            return Err(ContractError::Unauthorized);
+        }
+        if record.deactivated {
+            return Err(ContractError::Deactivated);
+        }
+        for id in &authentication {
+            if !record.verification_methods.iter().any(|vm| vm.id == id) {
+                return Err(ContractError::InvalidVerificationMethod);
+            }
+        }
+        for id in &assertion_method {
+            if !record.verification_methods.iter().any(|vm| vm.id == id) {
+                return Err(ContractError::InvalidVerificationMethod);
+            }
+        }
+
+        record.authentication = authentication;
+        record.assertion_method = assertion_method;
+        record.updated = env.ledger().timestamp();
+        record.version += 1;
+        write_did_record(&env, &controller, &record);
+
+        DidUpdated {
+            controller: controller.clone(),
+            version: record.version,
+        }
+        .publish(&env);
+
+        Ok(())
+    }
+
     /// Anchor a credential hash on-chain.
     ///
     /// Stores the SHA-256 hash of the JCS-canonicalized credential JSON
@@ -881,6 +929,57 @@ mod tests {
         let result =
             client.try_remove_verification_method(&controller, &String::from_str(&env, "key-99"));
         assert_eq!(result, Err(Ok(ContractError::NotFound)));
+    }
+
+    #[test]
+    fn set_relationships_happy_path() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1", "key-2"], &[], &[]);
+
+        let auth = Vec::from_array(&env, [String::from_str(&env, "key-1")]);
+        let assertion = Vec::from_array(&env, [String::from_str(&env, "key-2")]);
+        client.set_relationships(&controller, &auth, &assertion);
+        assert_last_event(&env, "did_updated");
+
+        let record = client.resolve(&controller);
+        assert_eq!(record.authentication.len(), 1);
+        assert_eq!(
+            record.authentication.get(0).unwrap(),
+            String::from_str(&env, "key-1")
+        );
+        assert_eq!(record.assertion_method.len(), 1);
+        assert_eq!(record.version, 2);
+    }
+
+    #[test]
+    fn set_relationships_unknown_vm_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        let auth = Vec::from_array(&env, [String::from_str(&env, "key-99")]);
+        let assertion = Vec::new(&env);
+        let result = client.try_set_relationships(&controller, &auth, &assertion);
+        assert_eq!(result, Err(Ok(ContractError::InvalidVerificationMethod)));
+    }
+
+    #[test]
+    fn set_relationships_no_auth_fails() {
+        let env = Env::default();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        let auth = Vec::new(&env);
+        let assertion = Vec::new(&env);
+        let result = client.try_set_relationships(&controller, &auth, &assertion);
+        assert!(result.is_err(), "unsigned call must fail, got {result:?}");
     }
 
     #[test]
