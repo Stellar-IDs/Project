@@ -13,7 +13,7 @@ use crate::storage::{
     has_credential_record, has_did_record, read_credential_record, read_did_record,
     write_credential_record, write_did_record,
 };
-use crate::types::{CredentialRecord, CredentialStatus, DidRecord, NewDidDoc};
+use crate::types::{CredentialRecord, CredentialStatus, DidRecord, NewDidDoc, VerificationMethod};
 
 const MAX_VERIFICATION_METHODS: u32 = 10;
 const MAX_SERVICES: u32 = 10;
@@ -106,6 +106,111 @@ impl IdentityContract {
 
     pub fn resolve(env: Env, controller: Address) -> Result<DidRecord, ContractError> {
         read_did_record(&env, &controller)
+    }
+
+    /// Add a verification method to a DID.
+    ///
+    /// Requires authorization from `controller`. The method id must be
+    /// unique within the DID, at most 128 bytes, and the kind must be
+    /// `Ed25519` (v1). At most 10 methods per DID (`LimitExceeded`).
+    /// Bumps `updated`/`version` and emits a `did/updated` event.
+    pub fn add_verification_method(
+        env: Env,
+        controller: Address,
+        vm: VerificationMethod,
+    ) -> Result<(), ContractError> {
+        controller.require_auth();
+
+        let mut record = read_did_record(&env, &controller)?;
+        if record.controller != controller {
+            return Err(ContractError::Unauthorized);
+        }
+        if record.deactivated {
+            return Err(ContractError::Deactivated);
+        }
+        if vm.id.len() > MAX_ID_LENGTH {
+            return Err(ContractError::InvalidInput);
+        }
+        if vm.kind != Symbol::new(&env, "Ed25519") {
+            return Err(ContractError::InvalidInput);
+        }
+        if record
+            .verification_methods
+            .iter()
+            .any(|existing| existing.id == vm.id)
+        {
+            return Err(ContractError::AlreadyExists);
+        }
+        if record.verification_methods.len() >= MAX_VERIFICATION_METHODS {
+            return Err(ContractError::LimitExceeded);
+        }
+
+        record.verification_methods.push_back(vm);
+        record.updated = env.ledger().timestamp();
+        record.version += 1;
+        write_did_record(&env, &controller, &record);
+
+        DidUpdated {
+            controller: controller.clone(),
+            version: record.version,
+        }
+        .publish(&env);
+
+        Ok(())
+    }
+
+    /// Remove a verification method from a DID.
+    ///
+    /// Requires authorization from `controller`. Returns `NotFound` for an
+    /// unknown method id. A method still referenced by `authentication` or
+    /// `assertion_method` cannot be removed (`InvalidVerificationMethod` —
+    /// call `set_relationships` first). Bumps `updated`/`version` and emits
+    /// a `did/updated` event.
+    pub fn remove_verification_method(
+        env: Env,
+        controller: Address,
+        vm_id: String,
+    ) -> Result<(), ContractError> {
+        controller.require_auth();
+
+        let mut record = read_did_record(&env, &controller)?;
+        if record.controller != controller {
+            return Err(ContractError::Unauthorized);
+        }
+        if record.deactivated {
+            return Err(ContractError::Deactivated);
+        }
+        if record.authentication.iter().any(|id| id == vm_id)
+            || record.assertion_method.iter().any(|id| id == vm_id)
+        {
+            return Err(ContractError::InvalidVerificationMethod);
+        }
+
+        let index = record
+            .verification_methods
+            .iter()
+            .position(|vm| vm.id == vm_id)
+            .map(|pos| pos as u32);
+        let index = match index {
+            Some(index) => index,
+            None => return Err(ContractError::NotFound),
+        };
+        // Out-of-bounds cannot happen: `index` came from the loop above.
+        if record.verification_methods.remove(index).is_none() {
+            return Err(ContractError::NotFound);
+        }
+
+        record.updated = env.ledger().timestamp();
+        record.version += 1;
+        write_did_record(&env, &controller, &record);
+
+        DidUpdated {
+            controller: controller.clone(),
+            version: record.version,
+        }
+        .publish(&env);
+
+        Ok(())
     }
 
     /// Anchor a credential hash on-chain.
@@ -614,6 +719,168 @@ mod tests {
             debug.contains(expected_topic),
             "expected topic {expected_topic}, got: {debug}"
         );
+    }
+
+    fn create_did_with_vms(
+        env: &Env,
+        client: &IdentityContractClient<'_>,
+        controller: &Address,
+        vm_ids: &[&str],
+        auth_ids: &[&str],
+        assertion_ids: &[&str],
+    ) {
+        let mut vms = Vec::new(env);
+        for (i, id) in vm_ids.iter().enumerate() {
+            vms.push_back(create_test_vm(env, id, [(i as u8) + 1; 32]));
+        }
+        let mut auth = Vec::new(env);
+        for id in auth_ids {
+            auth.push_back(String::from_str(env, id));
+        }
+        let mut assertion = Vec::new(env);
+        for id in assertion_ids {
+            assertion.push_back(String::from_str(env, id));
+        }
+        let doc = NewDidDoc {
+            controller: controller.clone(),
+            verification_methods: vms,
+            authentication: auth,
+            assertion_method: assertion,
+            services: Vec::new(env),
+        };
+        client.create_did(controller, &doc);
+    }
+
+    #[test]
+    fn add_verification_method_happy_path() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        env.ledger().set_timestamp(100);
+        let vm = create_test_vm(&env, "key-2", [9u8; 32]);
+        client.add_verification_method(&controller, &vm);
+        assert_last_event(&env, "did_updated");
+
+        let record = client.resolve(&controller);
+        assert_eq!(record.verification_methods.len(), 2);
+        assert_eq!(record.version, 2);
+        assert_eq!(record.updated, 100);
+    }
+
+    #[test]
+    fn add_verification_method_duplicate_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        let vm = create_test_vm(&env, "key-1", [9u8; 32]);
+        let result = client.try_add_verification_method(&controller, &vm);
+        assert_eq!(result, Err(Ok(ContractError::AlreadyExists)));
+    }
+
+    #[test]
+    fn add_verification_method_limit_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        let ids = ["k0", "k1", "k2", "k3", "k4", "k5", "k6", "k7", "k8", "k9"];
+        create_did_with_vms(&env, &client, &controller, &ids, &[], &[]);
+
+        let vm = create_test_vm(&env, "k10", [9u8; 32]);
+        let result = client.try_add_verification_method(&controller, &vm);
+        assert_eq!(result, Err(Ok(ContractError::LimitExceeded)));
+    }
+
+    #[test]
+    fn add_verification_method_bad_kind_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        let mut vm = create_test_vm(&env, "key-2", [9u8; 32]);
+        vm.kind = Symbol::new(&env, "Invalid");
+        let result = client.try_add_verification_method(&controller, &vm);
+        assert_eq!(result, Err(Ok(ContractError::InvalidInput)));
+    }
+
+    #[test]
+    fn add_verification_method_no_auth_fails() {
+        // No mock_all_auths: require_auth must fail for an unsigned call.
+        let env = Env::default();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        let vm = create_test_vm(&env, "key-1", [9u8; 32]);
+        let result = client.try_add_verification_method(&controller, &vm);
+        assert!(result.is_err(), "unsigned call must fail, got {result:?}");
+    }
+
+    #[test]
+    fn remove_verification_method_happy_path() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1", "key-2"], &[], &[]);
+
+        client.remove_verification_method(&controller, &String::from_str(&env, "key-1"));
+        assert_last_event(&env, "did_updated");
+
+        let record = client.resolve(&controller);
+        assert_eq!(record.verification_methods.len(), 1);
+        assert_eq!(
+            record.verification_methods.get(0).unwrap().id,
+            String::from_str(&env, "key-2")
+        );
+        assert_eq!(record.version, 2);
+    }
+
+    #[test]
+    fn remove_verification_method_referenced_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(
+            &env,
+            &client,
+            &controller,
+            &["key-1"],
+            &["key-1"],
+            &["key-1"],
+        );
+
+        let result =
+            client.try_remove_verification_method(&controller, &String::from_str(&env, "key-1"));
+        assert_eq!(result, Err(Ok(ContractError::InvalidVerificationMethod)));
+    }
+
+    #[test]
+    fn remove_verification_method_unknown_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        let result =
+            client.try_remove_verification_method(&controller, &String::from_str(&env, "key-99"));
+        assert_eq!(result, Err(Ok(ContractError::NotFound)));
     }
 
     #[test]
