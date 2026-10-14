@@ -13,7 +13,9 @@ use crate::storage::{
     has_credential_record, has_did_record, read_credential_record, read_did_record,
     write_credential_record, write_did_record,
 };
-use crate::types::{CredentialRecord, CredentialStatus, DidRecord, NewDidDoc, VerificationMethod};
+use crate::types::{
+    CredentialRecord, CredentialStatus, DidRecord, NewDidDoc, Service, VerificationMethod,
+};
 
 const MAX_VERIFICATION_METHODS: u32 = 10;
 const MAX_SERVICES: u32 = 10;
@@ -261,6 +263,103 @@ impl IdentityContract {
         Ok(())
     }
 
+    /// Add a service endpoint to a DID.
+    ///
+    /// Requires authorization from `controller`. The service id must be
+    /// unique within the DID (max 128 bytes), the kind at most 128 bytes,
+    /// and the endpoint an `https://` URL of at most 512 bytes. At most 10
+    /// services per DID (`LimitExceeded`). Bumps `updated`/`version` and
+    /// emits a `did/updated` event.
+    pub fn add_service(env: Env, controller: Address, svc: Service) -> Result<(), ContractError> {
+        controller.require_auth();
+
+        let mut record = read_did_record(&env, &controller)?;
+        if record.controller != controller {
+            return Err(ContractError::Unauthorized);
+        }
+        if record.deactivated {
+            return Err(ContractError::Deactivated);
+        }
+        if svc.id.len() > MAX_ID_LENGTH {
+            return Err(ContractError::InvalidInput);
+        }
+        if svc.kind.len() > MAX_ID_LENGTH {
+            return Err(ContractError::InvalidInput);
+        }
+        if svc.endpoint.len() > MAX_ENDPOINT_LENGTH {
+            return Err(ContractError::InvalidInput);
+        }
+        if !Self::is_https_endpoint(&env, &svc.endpoint) {
+            return Err(ContractError::InvalidInput);
+        }
+        if record.services.iter().any(|existing| existing.id == svc.id) {
+            return Err(ContractError::AlreadyExists);
+        }
+        if record.services.len() >= MAX_SERVICES {
+            return Err(ContractError::LimitExceeded);
+        }
+
+        record.services.push_back(svc);
+        record.updated = env.ledger().timestamp();
+        record.version += 1;
+        write_did_record(&env, &controller, &record);
+
+        DidUpdated {
+            controller: controller.clone(),
+            version: record.version,
+        }
+        .publish(&env);
+
+        Ok(())
+    }
+
+    /// Remove a service endpoint from a DID.
+    ///
+    /// Requires authorization from `controller`. Returns `NotFound` for an
+    /// unknown service id. Bumps `updated`/`version` and emits a
+    /// `did/updated` event.
+    pub fn remove_service(
+        env: Env,
+        controller: Address,
+        svc_id: String,
+    ) -> Result<(), ContractError> {
+        controller.require_auth();
+
+        let mut record = read_did_record(&env, &controller)?;
+        if record.controller != controller {
+            return Err(ContractError::Unauthorized);
+        }
+        if record.deactivated {
+            return Err(ContractError::Deactivated);
+        }
+
+        let index = record
+            .services
+            .iter()
+            .position(|svc| svc.id == svc_id)
+            .map(|pos| pos as u32);
+        let index = match index {
+            Some(index) => index,
+            None => return Err(ContractError::NotFound),
+        };
+        // Out-of-bounds cannot happen: `index` came from the search above.
+        if record.services.remove(index).is_none() {
+            return Err(ContractError::NotFound);
+        }
+
+        record.updated = env.ledger().timestamp();
+        record.version += 1;
+        write_did_record(&env, &controller, &record);
+
+        DidUpdated {
+            controller: controller.clone(),
+            version: record.version,
+        }
+        .publish(&env);
+
+        Ok(())
+    }
+
     /// Anchor a credential hash on-chain.
     ///
     /// Stores the SHA-256 hash of the JCS-canonicalized credential JSON
@@ -414,6 +513,13 @@ impl IdentityContract {
         CredentialStatus::Active
     }
 
+    /// Check that a service endpoint is an `https://` URL.
+    fn is_https_endpoint(env: &Env, endpoint: &String) -> bool {
+        let endpoint_bytes = endpoint.to_bytes();
+        endpoint_bytes.len() >= 8
+            && endpoint_bytes.slice(0..8) == Bytes::from_slice(env, b"https://")
+    }
+
     fn validate_new_doc(env: &Env, doc: &NewDidDoc) -> Result<(), ContractError> {
         if doc.verification_methods.len() > MAX_VERIFICATION_METHODS {
             return Err(ContractError::InvalidInput);
@@ -466,10 +572,7 @@ impl IdentityContract {
             if svc.endpoint.len() > MAX_ENDPOINT_LENGTH {
                 return Err(ContractError::InvalidInput);
             }
-            let endpoint_bytes = svc.endpoint.to_bytes();
-            if endpoint_bytes.len() < 8
-                || endpoint_bytes.slice(0..8) != Bytes::from_slice(env, b"https://")
-            {
+            if !Self::is_https_endpoint(env, &svc.endpoint) {
                 return Err(ContractError::InvalidInput);
             }
         }
@@ -928,6 +1031,107 @@ mod tests {
 
         let result =
             client.try_remove_verification_method(&controller, &String::from_str(&env, "key-99"));
+        assert_eq!(result, Err(Ok(ContractError::NotFound)));
+    }
+
+    fn create_test_svc_full(env: &Env, id: &str) -> crate::types::Service {
+        create_test_svc(env, id, "TestKind", "https://example.com/svc")
+    }
+
+    #[test]
+    fn add_service_happy_path() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        let svc = create_test_svc_full(&env, "svc-1");
+        client.add_service(&controller, &svc);
+        assert_last_event(&env, "did_updated");
+
+        let record = client.resolve(&controller);
+        assert_eq!(record.services.len(), 1);
+        assert_eq!(record.version, 2);
+    }
+
+    #[test]
+    fn add_service_duplicate_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        let svc = create_test_svc_full(&env, "svc-1");
+        client.add_service(&controller, &svc);
+        let result = client.try_add_service(&controller, &svc);
+        assert_eq!(result, Err(Ok(ContractError::AlreadyExists)));
+    }
+
+    #[test]
+    fn add_service_limit_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        for i in 0..10 {
+            let svc = create_test_svc_full(&env, &format!("svc-{i}"));
+            client.add_service(&controller, &svc);
+        }
+        let svc = create_test_svc_full(&env, "svc-10");
+        let result = client.try_add_service(&controller, &svc);
+        assert_eq!(result, Err(Ok(ContractError::LimitExceeded)));
+    }
+
+    #[test]
+    fn add_service_http_endpoint_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        let svc = create_test_svc(&env, "svc-1", "TestKind", "http://example.com/svc");
+        let result = client.try_add_service(&controller, &svc);
+        assert_eq!(result, Err(Ok(ContractError::InvalidInput)));
+    }
+
+    #[test]
+    fn remove_service_happy_path() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        let svc = create_test_svc_full(&env, "svc-1");
+        client.add_service(&controller, &svc);
+        client.remove_service(&controller, &String::from_str(&env, "svc-1"));
+        assert_last_event(&env, "did_updated");
+
+        let record = client.resolve(&controller);
+        assert_eq!(record.services.len(), 0);
+        assert_eq!(record.version, 3);
+    }
+
+    #[test]
+    fn remove_service_unknown_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        let result = client.try_remove_service(&controller, &String::from_str(&env, "svc-99"));
         assert_eq!(result, Err(Ok(ContractError::NotFound)));
     }
 
