@@ -1,0 +1,51 @@
+.sid-login {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sid-spacing);
+  font-family: var(--sid-font-family);
+  color: var(--sid-color-text);
+}
+
+.sid-button {
+  appearance: none;
+  border: 1px solid var(--sid-color-border);
+  border-radius: var(--sid-radius);
+  padding: calc(var(--sid-spacing) * 0.75) var(--sid-spacing);
+  font: inherit;
+  cursor: pointer;
+}
+
+.sid-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.sid-button:focus-visible {
+  outline: 2px solid var(--sid-color-primary);
+  outline-offset: 2px;
+}
+
+.sid-button--primary {
+  background: var(--sid-color-primary);
+  border-color: var(--sid-color-primary);
+  color: var(--sid-color-primary-text);
+}
+
+.sid-button--secondary {
+  background: var(--sid-color-background);
+  color: var(--sid-color-text);
+}
+
+.sid-login__status {
+  margin: 0;
+}
+
+.sid-login__did {
+  font-family: ui-monospace, monospace;
+  overflow-wrap: anywhere;
+}
+
+.sid-login__error {
+  margin: 0;
+  color: var(--sid-color-error);
+}

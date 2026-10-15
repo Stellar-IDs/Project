@@ -1,0 +1,47 @@
+/**
+ * stellar-id-frontend design tokens.
+ *
+ * Override any of these in your own CSS to theme the components. Dark mode
+ * follows the `data-sid-theme="dark"` attribute (set it on <html> or any
+ * ancestor); the light values are the default. All component styles
+ * reference these variables — no hardcoded colors in component CSS.
+ */
+:root,
+[data-sid-theme="light"] {
+  --sid-color-primary: #1a56db;
+  --sid-color-primary-text: #ffffff;
+  --sid-color-text: #111827;
+  --sid-color-muted: #6b7280;
+  --sid-color-background: #ffffff;
+  --sid-color-surface: #f3f4f6;
+  --sid-color-border: #d1d5db;
+  --sid-color-success: #047857;
+  --sid-color-success-bg: #d1fae5;
+  --sid-color-warning: #b45309;
+  --sid-color-warning-bg: #fef3c7;
+  --sid-color-error: #b91c1c;
+  --sid-color-error-bg: #fee2e2;
+  --sid-color-info: #1d4ed8;
+  --sid-color-info-bg: #dbeafe;
+  --sid-radius: 0.5rem;
+  --sid-font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --sid-spacing: 0.75rem;
+}
+
+[data-sid-theme="dark"] {
+  --sid-color-primary: #60a5fa;
+  --sid-color-primary-text: #0b1220;
+  --sid-color-text: #f3f4f6;
+  --sid-color-muted: #9ca3af;
+  --sid-color-background: #111827;
+  --sid-color-surface: #1f2937;
+  --sid-color-border: #374151;
+  --sid-color-success: #6ee7b7;
+  --sid-color-success-bg: #064e3b;
+  --sid-color-warning: #fcd34d;
+  --sid-color-warning-bg: #78350f;
+  --sid-color-error: #fca5a5;
+  --sid-color-error-bg: #7f1d1d;
+  --sid-color-info: #93c5fd;
+  --sid-color-info-bg: #1e3a8a;
+}
