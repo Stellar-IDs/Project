@@ -5,7 +5,8 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**", "coverage/**"],
+    // src/generated is vendored CLI output (see scripts/sync-bindings.sh) — lint the SDK, not the generator.
+    ignores: ["dist/**", "node_modules/**", "coverage/**", "src/generated/**"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
