@@ -215,6 +215,40 @@ impl IdentityContract {
         Ok(())
     }
 
+    /// Deactivate a DID (terminal).
+    ///
+    /// Requires authorization from `controller`. Sets the `deactivated`
+    /// flag; afterwards every mutating operation on the DID (updates,
+    /// rotation, anchoring) fails with `Deactivated`, while `resolve`,
+    /// `credential_status` and `revoke_credential` keep working so existing
+    /// credentials can be wound down. `resolve` still returns the record so
+    /// verifiers can distinguish "deactivated" from "never existed".
+    /// Bumps `updated`/`version` and emits a `did/deactivated` event.
+    /// Deactivating twice returns `Deactivated`.
+    pub fn deactivate_did(env: Env, controller: Address) -> Result<(), ContractError> {
+        controller.require_auth();
+
+        let mut record = read_did_record(&env, &controller)?;
+        if record.controller != controller {
+            return Err(ContractError::Unauthorized);
+        }
+        if record.deactivated {
+            return Err(ContractError::Deactivated);
+        }
+
+        record.deactivated = true;
+        record.updated = env.ledger().timestamp();
+        record.version += 1;
+        write_did_record(&env, &controller, &record);
+
+        DidDeactivated {
+            controller: controller.clone(),
+        }
+        .publish(&env);
+
+        Ok(())
+    }
+
     /// Replace the `authentication` and `assertion_method` relationship lists.
     ///
     /// Requires authorization from `controller`. Every id in both lists must
@@ -1133,6 +1167,134 @@ mod tests {
 
         let result = client.try_remove_service(&controller, &String::from_str(&env, "svc-99"));
         assert_eq!(result, Err(Ok(ContractError::NotFound)));
+    }
+
+    #[test]
+    fn deactivate_did_happy_path() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        client.deactivate_did(&controller);
+        assert_last_event(&env, "did_deactivated");
+
+        // Resolve still works and shows the tombstone flag.
+        let record = client.resolve(&controller);
+        assert!(record.deactivated);
+        assert_eq!(record.version, 2);
+    }
+
+    #[test]
+    fn deactivate_did_double_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        client.deactivate_did(&controller);
+        let result = client.try_deactivate_did(&controller);
+        assert_eq!(result, Err(Ok(ContractError::Deactivated)));
+    }
+
+    #[test]
+    fn deactivated_did_rejects_mutations() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(
+            &env,
+            &client,
+            &controller,
+            &["key-1"],
+            &["key-1"],
+            &["key-1"],
+        );
+        let hash = BytesN::from_array(&env, &[7u8; 32]);
+        client.anchor_credential(&controller, &hash, &None);
+        client.deactivate_did(&controller);
+
+        // Every state-changing DID operation must fail with Deactivated.
+        let vm = create_test_vm(&env, "key-2", [9u8; 32]);
+        assert_eq!(
+            client.try_add_verification_method(&controller, &vm),
+            Err(Ok(ContractError::Deactivated))
+        );
+        assert_eq!(
+            client.try_remove_verification_method(&controller, &String::from_str(&env, "key-1")),
+            Err(Ok(ContractError::Deactivated))
+        );
+        let empty = Vec::new(&env);
+        assert_eq!(
+            client.try_set_relationships(&controller, &empty, &empty),
+            Err(Ok(ContractError::Deactivated))
+        );
+        let svc = create_test_svc_full(&env, "svc-1");
+        assert_eq!(
+            client.try_add_service(&controller, &svc),
+            Err(Ok(ContractError::Deactivated))
+        );
+        assert_eq!(
+            client.try_remove_service(&controller, &String::from_str(&env, "svc-1")),
+            Err(Ok(ContractError::Deactivated))
+        );
+        let hash2 = BytesN::from_array(&env, &[8u8; 32]);
+        assert_eq!(
+            client.try_anchor_credential(&controller, &hash2, &None),
+            Err(Ok(ContractError::Deactivated))
+        );
+        // resolve still works.
+        assert!(client.resolve(&controller).deactivated);
+    }
+
+    #[test]
+    fn revoke_after_deactivate_still_works() {
+        // Revocation destroys trust rather than creating it, so it stays
+        // available as a safety action after deactivation.
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_issuer_did(&env, &client, &controller);
+        let hash = BytesN::from_array(&env, &[7u8; 32]);
+        client.anchor_credential(&controller, &hash, &None);
+        client.deactivate_did(&controller);
+
+        client.revoke_credential(&controller, &hash);
+        let status = client.credential_status(&controller, &hash);
+        assert_eq!(status, CredentialStatus::Revoked);
+    }
+
+    #[test]
+    fn verify_after_deactivate_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let signing_key = test_signing_key();
+        let public_bytes: [u8; 32] = signing_key.verifying_key().to_bytes();
+        let issuer = Address::generate(&env);
+        create_issuer_did_with_key(&env, &client, &issuer, &public_bytes);
+        client.deactivate_did(&issuer);
+
+        let message_hash = sha256_of(TEST_CREDENTIAL_CANONICAL.as_bytes());
+        let signature = signing_key.sign(&message_hash);
+        let signature_bytes: [u8; 64] = signature.to_bytes();
+
+        let result = client.try_verify_credential_proof(
+            &issuer,
+            &String::from_str(&env, "key-1"),
+            &BytesN::from_array(&env, &message_hash),
+            &BytesN::from_array(&env, &signature_bytes),
+        );
+        assert_eq!(result, Err(Ok(ContractError::Deactivated)));
     }
 
     #[test]
