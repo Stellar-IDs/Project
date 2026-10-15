@@ -13,6 +13,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "resolveJsonModule": true,
     // Unused-variable checks are enforced by ESLint (error level) on
     // hand-written code instead: the vendored src/generated bindings ship
     // unused imports from the CLI generator, which tsc cannot ignore per-file.

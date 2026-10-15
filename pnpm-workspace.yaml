@@ -8,10 +8,17 @@ packages:
 # esbuild: validates its platform binary (falls back to the optional dep).
 # core-js: prints funding info only.
 # @swc/core: validates its native binary (required by @docusaurus/faster).
+# @reown/appkit (+ bufferutil, utf-8-validate): native ws deps pulled in by
+#   @creit.tech/stellar-wallets-kit; standard prebuilt-binary install scripts.
+# secp256k1: native bindings build for WalletConnect signing (wallets-kit tree).
 allowBuilds:
   esbuild: true
   core-js: true
   "@swc/core": true
+  "@reown/appkit": true
+  bufferutil: true
+  utf-8-validate: true
+  secp256k1: true
 minimumReleaseAgeExclude:
   - "@storybook/builder-vite@10.6.2"
   - "@storybook/react-dom-shim@10.6.2"
