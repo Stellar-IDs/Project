@@ -10,8 +10,8 @@ mod types;
 
 use crate::error::ContractError;
 use crate::storage::{
-    has_credential_record, has_did_record, read_credential_record, read_did_record,
-    write_credential_record, write_did_record,
+    extend_did_ttl, has_credential_record, has_did_record, read_credential_record, read_did_record,
+    remove_did_record, write_credential_record, write_did_record,
 };
 use crate::types::{
     CredentialRecord, CredentialStatus, DidRecord, NewDidDoc, Service, VerificationMethod,
@@ -246,6 +246,73 @@ impl IdentityContract {
         }
         .publish(&env);
 
+        Ok(())
+    }
+
+    /// Rotate a DID to a new controller (both sides consent).
+    ///
+    /// Requires authorization from **both** `controller` and `new_controller`.
+    /// The record moves from the old key to the new one: `resolve(old)`
+    /// returns `NotFound` afterwards, `resolve(new)` returns the record with
+    /// `controller == new` and history (keys, services, version chain)
+    /// intact. Rotating to self (`InvalidInput`), to an address that already
+    /// owns a DID (`AlreadyExists`), or from a deactivated DID
+    /// (`Deactivated`) all fail. Emits a `did/controller_rotated` event.
+    ///
+    /// Note: credentials anchored under the old address stay keyed by it.
+    /// Rotation effectively starts a new DID identity — re-anchor any
+    /// credentials that must remain verifiable under the new controller.
+    pub fn rotate_controller(
+        env: Env,
+        controller: Address,
+        new_controller: Address,
+    ) -> Result<(), ContractError> {
+        // Pure input validation first (touches no state): rotating to self
+        // must fail with InvalidInput even before any authorization, since
+        // authorizing the same address twice for one call is meaningless.
+        if new_controller == controller {
+            return Err(ContractError::InvalidInput);
+        }
+        controller.require_auth();
+        new_controller.require_auth();
+
+        let mut record = read_did_record(&env, &controller)?;
+        if record.controller != controller {
+            return Err(ContractError::Unauthorized);
+        }
+        if record.deactivated {
+            return Err(ContractError::Deactivated);
+        }
+        if has_did_record(&env, &new_controller) {
+            return Err(ContractError::AlreadyExists);
+        }
+
+        remove_did_record(&env, &controller);
+        record.controller = new_controller.clone();
+        record.updated = env.ledger().timestamp();
+        record.version += 1;
+        write_did_record(&env, &new_controller, &record);
+
+        DidControllerRotated {
+            old_controller: controller.clone(),
+            new_controller: new_controller.clone(),
+            version: record.version,
+        }
+        .publish(&env);
+
+        Ok(())
+    }
+
+    /// Extend a DID record's time-to-live without changing it.
+    ///
+    /// Anyone may call (no authorization — the caller pays the rent for the
+    /// extension). Returns `NotFound` for a missing DID. Works on
+    /// deactivated DIDs so tombstones stay resolvable. Emits no event and
+    /// changes no state; TTL mechanics are documented in
+    /// `docs/METHOD_SPEC.md` §8.
+    pub fn bump_ttl(env: Env, controller: Address) -> Result<(), ContractError> {
+        read_did_record(&env, &controller)?;
+        extend_did_ttl(&env, &controller);
         Ok(())
     }
 
@@ -1295,6 +1362,151 @@ mod tests {
             &BytesN::from_array(&env, &signature_bytes),
         );
         assert_eq!(result, Err(Ok(ContractError::Deactivated)));
+    }
+
+    #[test]
+    fn rotate_controller_happy_path() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        create_did_with_vms(&env, &client, &alice, &["key-1"], &["key-1"], &[]);
+
+        client.rotate_controller(&alice, &bob);
+        assert_last_event(&env, "did_controller_rotated");
+
+        // New controller gains the DID with history intact.
+        let record = client.resolve(&bob);
+        assert_eq!(record.controller, bob);
+        assert_eq!(record.verification_methods.len(), 1);
+        assert_eq!(record.version, 2);
+
+        // Old address no longer resolves.
+        let result = client.try_resolve(&alice);
+        assert_eq!(result, Err(Ok(ContractError::NotFound)));
+    }
+
+    #[test]
+    fn rotate_controller_same_address_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let alice = Address::generate(&env);
+        create_did_with_vms(&env, &client, &alice, &["key-1"], &[], &[]);
+
+        let result = client.try_rotate_controller(&alice, &alice);
+        assert_eq!(result, Err(Ok(ContractError::InvalidInput)));
+    }
+
+    #[test]
+    fn rotate_controller_target_exists_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        create_did_with_vms(&env, &client, &alice, &["key-1"], &[], &[]);
+        create_did_with_vms(&env, &client, &bob, &["key-1"], &[], &[]);
+
+        let result = client.try_rotate_controller(&alice, &bob);
+        assert_eq!(result, Err(Ok(ContractError::AlreadyExists)));
+    }
+
+    #[test]
+    fn rotate_controller_missing_did_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+
+        let result = client.try_rotate_controller(&alice, &bob);
+        assert_eq!(result, Err(Ok(ContractError::NotFound)));
+    }
+
+    #[test]
+    fn rotate_controller_deactivated_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        create_did_with_vms(&env, &client, &alice, &["key-1"], &[], &[]);
+        client.deactivate_did(&alice);
+
+        let result = client.try_rotate_controller(&alice, &bob);
+        assert_eq!(result, Err(Ok(ContractError::Deactivated)));
+    }
+
+    #[test]
+    fn rotate_controller_no_auth_fails() {
+        let env = Env::default();
+        let client = setup_contract(&env);
+
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        let result = client.try_rotate_controller(&alice, &bob);
+        assert!(result.is_err(), "unsigned call must fail, got {result:?}");
+    }
+
+    #[test]
+    fn bump_ttl_happy_path() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+
+        client.bump_ttl(&controller);
+
+        // No state change: version and content untouched.
+        let record = client.resolve(&controller);
+        assert_eq!(record.version, 1);
+    }
+
+    #[test]
+    fn bump_ttl_needs_no_auth() {
+        // Anyone may call bump_ttl: no mock_all_auths, still succeeds.
+        let env = Env::default();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        let result = client.try_bump_ttl(&controller);
+        // Missing DID fails even without auth (proves the read path runs).
+        assert_eq!(result, Err(Ok(ContractError::NotFound)));
+    }
+
+    #[test]
+    fn bump_ttl_missing_did_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        let result = client.try_bump_ttl(&controller);
+        assert_eq!(result, Err(Ok(ContractError::NotFound)));
+    }
+
+    #[test]
+    fn bump_ttl_deactivated_ok() {
+        // Tombstones stay resolvable: TTL can be extended after deactivation.
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        create_did_with_vms(&env, &client, &controller, &["key-1"], &[], &[]);
+        client.deactivate_did(&controller);
+
+        client.bump_ttl(&controller);
+        assert!(client.resolve(&controller).deactivated);
     }
 
     #[test]
