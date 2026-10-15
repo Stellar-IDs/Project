@@ -1,0 +1,58 @@
+.sid-profile {
+  font-family: var(--sid-font-family);
+  color: var(--sid-color-text);
+  background: var(--sid-color-background);
+  border: 1px solid var(--sid-color-border);
+  border-radius: var(--sid-radius);
+  padding: var(--sid-spacing);
+}
+
+.sid-profile__title {
+  margin: 0 0 var(--sid-spacing);
+  font-size: 1.125rem;
+}
+
+.sid-profile h3 {
+  margin: var(--sid-spacing) 0 calc(var(--sid-spacing) / 2);
+  font-size: 1rem;
+}
+
+.sid-profile__fields {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--sid-spacing) / 2);
+}
+
+.sid-profile__fields dt {
+  font-weight: 600;
+}
+
+.sid-profile__fields dd {
+  margin: 0;
+}
+
+.sid-profile__did,
+.sid-profile__mono {
+  font-family: ui-monospace, monospace;
+  overflow-wrap: anywhere;
+}
+
+.sid-profile__muted {
+  color: var(--sid-color-muted);
+}
+
+.sid-profile__list {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+}
+
+.sid-profile__empty {
+  color: var(--sid-color-muted);
+  margin: 0;
+}
+
+.sid-profile__error {
+  color: var(--sid-color-error);
+  margin: 0;
+}

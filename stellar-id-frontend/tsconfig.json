@@ -15,5 +15,5 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["src", "test", ".storybook", "tsup.config.ts"]
+  "include": ["src", "test", ".storybook", "tsup.config.ts", "vitest.config.ts"]
 }
