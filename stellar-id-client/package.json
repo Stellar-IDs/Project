@@ -27,6 +27,10 @@
     "build": "tsup",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
+  "dependencies": {
+    "@stellar/stellar-sdk": "^16.0.1",
+    "buffer": "6.0.3"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.0.0",
