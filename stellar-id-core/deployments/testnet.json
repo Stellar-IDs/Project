@@ -1,10 +1,14 @@
 {
   "network": "testnet",
-  "contractId": "",
-  "wasmHash": "",
-  "deployedAt": "",
-  "deployedBy": "",
-  "stellarCliVersion": "",
-  "sorobanSdkVersion": "",
-  "note": "Filled by the Phase 3 deployment. Testnet only; never mainnet."
+  "network_passphrase": "Test SDF Network ; September 2015",
+  "rpc_url": "https://soroban-testnet.stellar.org",
+  "contract_id": "CBFXX2HCWDIQR45XNPLIMADAKO3N2EXMHJWSGNGNMJQR67TKZ4SCTXXE",
+  "wasm_hash": "400726ecf5529f2fff8ece0bcf6f7e2411af289f2a4fb5634944f2db51e8e332",
+  "wasm_size_bytes": 21089,
+  "deployer": "GA2DO5BZPTPE4OPB46XXZF37VGIJXG7D535QU4GWYJLZYISSXOZKKF4M",
+  "deployed_at": "2026-10-15",
+  "stellar_cli": "28.1.0",
+  "soroban_sdk": "28.0.0",
+  "git_commit": "e83df29",
+  "notes": "First testnet deployment (Phase 3). Redeploys are expected on testnet resets — append a dated entry here rather than overwriting."
 }
