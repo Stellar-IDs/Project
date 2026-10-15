@@ -32,6 +32,21 @@ pub fn has_did_record(e: &Env, controller: &Address) -> bool {
     e.storage().persistent().has(&key)
 }
 
+/// Remove a DID record from storage (used by controller rotation, which
+/// moves the record to the new controller's key).
+pub fn remove_did_record(e: &Env, controller: &Address) {
+    let key = DataKey::Did(controller.clone());
+    e.storage().persistent().remove(&key);
+}
+
+/// Extend a DID record's TTL without modifying it. Anyone may call and pay.
+pub fn extend_did_ttl(e: &Env, controller: &Address) {
+    let key = DataKey::Did(controller.clone());
+    e.storage()
+        .persistent()
+        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+}
+
 /// Read a credential record from storage.
 pub fn read_credential_record(
     e: &Env,
