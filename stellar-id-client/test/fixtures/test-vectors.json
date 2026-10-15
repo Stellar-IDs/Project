@@ -1,0 +1,39 @@
+{
+  "description": "Cross-language test vectors shared by stellar-id-core (Rust/Soroban) and stellar-id-client (TypeScript). Generated from the contract test suite (see contracts/identity/src/lib.rs: TEST_CREDENTIAL_CANONICAL, TEST_SIGNING_SEED). The client SDK must reproduce the sha256 and the signature verification result from the canonical string to prove hashing/signing compatibility.",
+  "canonicalization": "JCS (RFC 8785): object keys sorted lexicographically, no whitespace, UTF-8. The example below is already in canonical form; `input` shows the same credential with keys out of order, `canonical` is the exact byte string that gets hashed.",
+  "hashing": "SHA-256 over the UTF-8 bytes of the canonical string. The resulting 32-byte digest is what gets anchored on-chain (anchor_credential) and what gets signed.",
+  "signing": "Ed25519 (ed25519-dalek v2 / tweetnacl-compatible) over the raw 32-byte digest — NOT over the JSON text. Signature is 64 bytes. Test seed [42u8; 32] is a fixed throwaway, never a real key.",
+  "note_on_dids": "The issuer/subject strings use underscore placeholders (GABC___...), not real strkey addresses — they are opaque example strings here. Only their exact bytes matter for the hash.",
+  "jcs_canonicalization": [
+    {
+      "input": {
+        "type": ["VerifiableCredential"],
+        "issuer": "did:stellar:testnet:GABC_______________",
+        "issuanceDate": "2026-01-01T00:00:00Z",
+        "id": "http://example.edu/credentials/3732",
+        "credentialSubject": {
+          "id": "did:stellar:testnet:GDEF_______________",
+          "degree": "Bachelor of Science"
+        }
+      },
+      "canonical": "{\"credentialSubject\":{\"degree\":\"Bachelor of Science\",\"id\":\"did:stellar:testnet:GDEF_______________\"},\"id\":\"http://example.edu/credentials/3732\",\"issuanceDate\":\"2026-01-01T00:00:00Z\",\"issuer\":\"did:stellar:testnet:GABC_______________\",\"type\":[\"VerifiableCredential\"]}",
+      "sha256": "bcd068be6582107ddce88976b54994ab544b904a775ebbcd590b7f1209100cc0"
+    }
+  ],
+  "ed25519_sign_verify": [
+    {
+      "private_key_seed_hex": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
+      "public_key_hex": "197f6b23e16c8532c6abc838facd5ea789be0c76b2920334039bfa8b3d368d61",
+      "message_hex": "bcd068be6582107ddce88976b54994ab544b904a775ebbcd590b7f1209100cc0",
+      "signature_hex": "0a992ff1e3a7f0329487513caec3fb018d77b95c58777411b8f4a6bd76c63ff1654e8f671aa6621550d47ba0e5d47c8b54a96b0a44565be280525e52407fd101",
+      "valid": true
+    },
+    {
+      "public_key_hex": "197f6b23e16c8532c6abc838facd5ea789be0c76b2920334039bfa8b3d368d61",
+      "message_hex": "bcd068be6582107ddce88976b54994ab544b904a775ebbcd590b7f1209100cc0",
+      "signature_hex": "0a992ff1e3a7f0329487513caec3fb018d77b95c58777411b8f4a6bd76c63ff1654e8f671aa6621550d47ba0e5d47c8b54a96b0a44565be280525e52407fd100",
+      "valid": false,
+      "note": "Same as above with the last signature byte flipped (01 -> 00). Any bit flip must fail verification; on-chain this surfaces as a trap, not a return value."
+    }
+  ]
+}

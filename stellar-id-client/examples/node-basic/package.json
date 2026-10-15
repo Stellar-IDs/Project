@@ -1,0 +1,11 @@
+{
+  "name": "node-basic-example",
+  "version": "0.1.0",
+  "private": true,
+  "description": "End-to-end stellar-id-client flow on testnet (not published; not in the workspace)",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "start": "node run.mjs"
+  }
+}
