@@ -2,7 +2,7 @@
 
 **Updated:** 2026-10-14
 **Current phase:** 1 — Core contract: DID lifecycle
-**Current task:** Phase 2 complete — `anchor_credential`, `revoke_credential`, `credential_status`, `verify_credential_proof` implemented with tests (24 passing), `docs/test-vectors.json` written, contract builds (6 exports). Still pending: Phase 1 update-functions (`add_verification_method` … `bump_ttl`) + Gate 1b interface freeze.
+**Current task:** Phase 1 implementation COMPLETE — all 10 lifecycle functions + 4 credential functions implemented, 56 tests green, wasm 21089 bytes (14 exports). Ready for Gate 1b human review + interface freeze.
 
 ## Environment / pinned versions
 
@@ -27,7 +27,7 @@
 | @docusaurus/core / preset-classic / faster | ^3.10.2 | `future: { v4: true }` → Rspack bundler; see Windows notes |
 | @docusaurus/types, plugin-content-docs, module-type-aliases, tsconfig | ^3.10.2 | direct devDeps (pnpm strictness: @docusaurus/types + plugin-content-docs needed for `tsc`; SidebarsConfig comes from plugin-content-docs `src/*.d.ts`, not the entry) |
 
-Contract build: `stellar_id_core.wasm`, **12474 bytes**, hash `2a6bdd16383884e960bcb8d1d24ecee9942adb161a7401a57294cd41ebb0cd6b`, exports `anchor_credential`, `create_did`, `credential_status`, `resolve`, `revoke_credential`, `verify_credential_proof`.
+Contract build: `stellar_id_core.wasm`, **21089 bytes**, hash `400726ecf5529f2fff8ece0bcf6f7e2411af289f2a4fb5634944f2db51e8e332`, exports `add_service`, `add_verification_method`, `anchor_credential`, `bump_ttl`, `create_did`, `credential_status`, `deactivate_did`, `remove_service`, `remove_verification_method`, `resolve`, `revoke_credential`, `rotate_controller`, `set_relationships`, `verify_credential_proof` (14).
 
 ## Done
 - [x] Environment setup (PLAYBOOK §6 partial): git, node, pnpm, rust + wasm targets, stellar CLI 28.1.0
@@ -46,14 +46,14 @@ Contract build: `stellar_id_core.wasm`, **12474 bytes**, hash `2a6bdd16383884e96
 - [x] Phase 1 implementation: `create_did` and `resolve` with full test coverage (8 tests), authorization, validation, events, TTL extension
 - [x] Phase 2 credentials: `CredentialRecord` + `CredentialStatus` types, credential storage helpers with TTL, `anchor_credential` / `revoke_credential` / `credential_status` (11 new tests: duplicates, re-anchor-after-revoke, double-revoke, non-issuer isolation, expiry boundaries, revoked-beats-expired, event topics), `verify_credential_proof` with real Ed25519 signatures (5 tests incl. trap-on-wrong-key, VM-not-in-assertionMethod, unknown VM, missing DID) — 24 tests total, all green
 - [x] Phase 2 acceptance artifact: `stellar-id-core/docs/test-vectors.json` (JCS canonical + SHA-256 + Ed25519 vectors incl. one invalid-sig vector), byte-identical canonical string to the Rust test const (verified by script)
+- [x] Phase 1 update-functions: `add/remove_verification_method` (8 tests), `set_relationships` (3), `add/remove_service` (6), `deactivate_did` + mutation-rejection matrix + revoke-after-deactivate + verify-after-deactivate (5), `rotate_controller` + `bump_ttl` (10) — 56 tests total, all green; every mutating fn has require_auth + version bump + event; no-auth failure test per group
 
 ## In progress
 - (nothing — Phase 1 `create_did` + `resolve` complete)
 
 ## Next
-1. Phase 1 remaining functions: `add_verification_method`, `remove_verification_method`, `set_relationships`, `add_service`, `remove_service`, `deactivate_did`, `rotate_controller`, `bump_ttl` (one function group at a time, test-first) — note `verify_credential_proof`'s `Deactivated` path and deactivation-dependent tests are uncovered until `deactivate_did` lands
-2. Phase 1 Gate 1b: human reads the whole contract, reruns tests, signs off the public interface in STATUS.md ("Interface frozen at commit abc123")
-3. Phase 3: testnet deploy + TypeScript bindings (needs `stellar keys` identities — see Blockers)
+1. Phase 1 Gate 1b: human reads the whole contract, reruns tests, signs off the public interface in STATUS.md ("Interface frozen at commit abc123"). Open review items for the gate: (a) `create_did` returns `InvalidInput` for limit violations while new `add_*` functions return `LimitExceeded` — spec §3.3 says `LimitExceeded`; unify? (b) rotation moves the record (old key 404s, old credentials orphaned) — acceptable? (c) `revoke_credential` allowed after deactivation (safety action) — acceptable?
+2. Phase 3: testnet deploy + TypeScript bindings (needs `stellar keys` identities — see Blockers)
 
 ## Decisions (append-only, dated)
 - 2026-10-13: soroban-sdk pinned to 28.0.0 to match stellar CLI 28.1.0 major. SDK 29.0.1 exists but no CLI v29 is released — do not mix majors.
@@ -75,6 +75,9 @@ Contract build: `stellar_id_core.wasm`, **12474 bytes**, hash `2a6bdd16383884e96
 - 2026-10-14 (Phase 2): test-only dev-deps `ed25519-dalek 2`, `rand 0.8`, `sha2 0.10` added to the identity crate — versions match the existing transitive tree (Cargo.lock: 2.2.0 / 0.8.8 / 0.10.9), host-only, no wasm impact (12474 bytes total).
 - 2026-10-14 (Phase 2): in soroban-sdk 28's test env, `env.events().all()` reflects the most recent invocation only (proven by debug test: cumulative counts fail, per-invocation count is 1). Event tests therefore assert immediately after each mutating call, before any read-only call.
 - 2026-10-14 (Phase 2): `// TODO(wave: core-1)` (method registration, in `create_did`), `// TODO(wave: core-2)` (proof-type dispatch, in `verify_credential_proof`), `// TODO(wave: core-3)` (revocation lists, in `credential_status` + types) markers placed.
+- 2026-10-15 (Phase 1 updates): new `add_*` functions return `LimitExceeded` for count caps (spec §3.3) while `create_did` returns `InvalidInput` for the same caps — inconsistency flagged for Gate 1b, not unilaterally changed. Removing a VM referenced by a relationship → `InvalidVerificationMethod`; unknown VM/service id → `NotFound`; double-deactivate → `Deactivated`.
+- 2026-10-15 (Phase 1 updates): `rotate_controller` moves the record (old key → `NotFound`); credentials anchored under the old address are orphaned and must be re-anchored — documented in function docs, flagged for Gate 1b. Self-rotation is validated before any `require_auth` (authorizing one address twice aborts at host level — found via failing test, fixed by reordering).
+- 2026-10-15 (Phase 1 updates): `bump_ttl` takes no auth (proven by no-mock test), works on tombstones; TTL values themselves are host-managed and not directly observable in SDK 28 tests, so coverage is behavioral (Ok/NotFound, no state change).
 
 ## Blockers / open questions
 - `stellar keys generate deployer/alice/bob --network testnet --fund` (PLAYBOOK §6 step 5) not run yet — needed from Phase 3. Testnet resets; run before deployment.
