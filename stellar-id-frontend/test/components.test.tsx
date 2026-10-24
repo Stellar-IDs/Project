@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { axe } from "jest-axe";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -180,6 +180,28 @@ describe("CredentialBadge", () => {
   it("renders idle without a credential", () => {
     render(<CredentialBadge credential={null} />);
     expect(screen.getByText("No credential")).toBeInTheDocument();
+  });
+
+  it("revalidates when refreshToken changes", async () => {
+    let calls = 0;
+    const verify = async () => {
+      calls += 1;
+      return { valid: true as const, did: "d", hash: "h" };
+    };
+    const { rerender } = render(
+      <CredentialBadge credential={credentialFixture("ee".repeat(64))} verify={verify} />,
+    );
+    expect(await screen.findByText("Valid credential")).toBeInTheDocument();
+    expect(calls).toBe(1);
+    rerender(
+      <CredentialBadge
+        credential={credentialFixture("ee".repeat(64))}
+        verify={verify}
+        refreshToken={1}
+      />,
+    );
+    await waitFor(() => expect(calls).toBe(2));
+    expect(await screen.findByText("Valid credential")).toBeInTheDocument();
   });
 
   it("has no axe violations", async () => {

@@ -11,9 +11,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@stellar/stellar-sdk": "^16.0.1",
+    "buffer": "6.0.3",
     "next": "^16.4.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "stellar-id-client": "workspace:^0.1.0",
+    "stellar-id-frontend": "workspace:^0.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

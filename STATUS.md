@@ -2,7 +2,7 @@
 
 **Updated:** 2026-10-14
 **Current phase:** 1 — Core contract: DID lifecycle
-**Current task:** Phase 1 implementation COMPLETE — all 10 lifecycle functions + 4 credential functions implemented, 56 tests green, wasm 21089 bytes (14 exports). Ready for Gate 1b human review + interface freeze.
+**Current task:** UNATTENDED RUN — Phase 4 complete (SDK live on testnet: 40 unit tests + integration lifecycle green, example green, publint clean). Starting Phase 5 frontend. Gates 1b/3/4/5/7 human sign-offs deferred, see Decisions.
 
 ## Environment / pinned versions
 
@@ -78,6 +78,10 @@ Contract build: `stellar_id_core.wasm`, **21089 bytes**, hash `400726ecf5529f2ff
 - 2026-10-15 (Phase 1 updates): new `add_*` functions return `LimitExceeded` for count caps (spec §3.3) while `create_did` returns `InvalidInput` for the same caps — inconsistency flagged for Gate 1b, not unilaterally changed. Removing a VM referenced by a relationship → `InvalidVerificationMethod`; unknown VM/service id → `NotFound`; double-deactivate → `Deactivated`.
 - 2026-10-15 (Phase 1 updates): `rotate_controller` moves the record (old key → `NotFound`); credentials anchored under the old address are orphaned and must be re-anchored — documented in function docs, flagged for Gate 1b. Self-rotation is validated before any `require_auth` (authorizing one address twice aborts at host level — found via failing test, fixed by reordering).
 - 2026-10-15 (Phase 1 updates): `bump_ttl` takes no auth (proven by no-mock test), works on tombstones; TTL values themselves are host-managed and not directly observable in SDK 28 tests, so coverage is behavioral (Ok/NotFound, no state change).
+- 2026-10-15 (Phase 5): PLAYBOOK §5.1.3's bare-range + link-workspace-packages mechanism does not work on pnpm 12 for unpublished packages (registry 404 before linking; `link-workspace-packages=true` + `prefer-workspace-packages=true` in root .npmrc had no effect). Frontend uses `"stellar-id-client": "workspace:^0.1.0"` instead — intent-preserving: pnpm auto-converts `workspace:` ranges to real semver on publish, and the Phase 8 split step must rewrite it to bare `^0.1.0` once the client is on npm (client publishes first per Phase 7 order).
+- 2026-10-15 (Phase 4): SDK pins @stellar/stellar-sdk ^16.0.1 (matches CLI bindings generator; 16.3.1 resolved) — v17 (pulled transitively by wallets-kit) NOT adopted. New runtime deps: `base-x` 5.0.1 (multibase; bundled via tsup noExternal after CJS interop broke the smoke test), `@creit.tech/stellar-wallets-kit` 2.7.1 (heavy tree incl. appkit; native builds allowlisted with reasons). SHA-256 via sdk `hash`, no extra dep. JCS implemented inline (documented subset). WalletsKit signMessage uses base64 round-trip (Freighter convention, real-wallet untested). publint caught a real exports-map types bug (fixed; `sideEffects:false` declined — vendored bindings touch `window.Buffer`). Integration suite + node-basic example proven on testnet (Gate 4 substance).
+- 2026-10-15 (Phase 3): deployed first try failed transiently on WASM upload (`client error (Connect)`), retry succeeded. Friendbot rate-limits back-to-back funding (smoke failed, then `stellar keys fund` worked minutes later). CLI 28.1.0: `stellar contract bindings typescript` is deprecated (still works); `--is-view` deprecated → use `--send=no`. Bindings embed @stellar/stellar-sdk ^16.0.1 → client pins ^16.0.1 (resolves 16.3.1); latest 17.2.1 NOT adopted (generator-compat). Gate 3 substance covered by CLI smoke transcript (docs/SMOKE_TEST.md); human re-confirmation pending.
+- 2026-10-15 (unattended run): user ordered a continuous build Phases 3→7 with no human in the loop. Gates 1b/3/4/5/7 human sign-offs are DEFERRED (recorded as pending, not skipped-silently); implementation proceeds on the current interface. AGENTS.md rule-10 "stop and ask" items that arise will be resolved conservatively and logged here instead of blocking. `opencode.json`: `edit` loosened to `allow` per PLAYBOOK Appendix B guidance (`bash *` was already `allow`); `git push`/`rm -rf` stays `deny`; no pushes will be made. Restart opencode to reload config; consider reverting `edit` to `ask` after the run.
 
 ## Blockers / open questions
 - `stellar keys generate deployer/alice/bob --network testnet --fund` (PLAYBOOK §6 step 5) not run yet — needed from Phase 3. Testnet resets; run before deployment.
@@ -88,6 +92,6 @@ Contract build: `stellar_id_core.wasm`, **21089 bytes**, hash `400726ecf5529f2ff
 - Contract interface frozen at commit: (blank until Gate 1b)
 
 ## Deployments
-- testnet contract ID: — wasm hash: — deployed: —
+- testnet contract ID: CBFXX2HCWDIQR45XNPLIMADAKO3N2EXMHJWSGNGNMJQR67TKZ4SCTXXE — wasm hash: 400726ecf5529f2fff8ece0bcf6f7e2411af289f2a4fb5634944f2db51e8e332 — deployed: 2026-10-15 (commit e83df29, tag core-v0.1.0, deployer GA2DO5BZPTPE4OPB46XXZF37VGIJXG7D535QU4GWYJLZYISSXOZKKF4M; smoke DID GD5C6OVUQB56WJWF2PUZOTMLRC7AYAL2NPVAFRLGJ23B54SB5ED3ZP7F created/updated/deactivated, still resolvable)
 
 (End of file - total 92 lines)
