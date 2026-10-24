@@ -134,7 +134,7 @@ const verificationCache = new Map<string, VerificationResult>();
  */
 export function useCredential(
   credential: VerifiableCredential | null,
-  opts?: { network?: NetworkConfig; verify?: VerifyFn },
+  opts?: { network?: NetworkConfig; verify?: VerifyFn; cacheSuffix?: string | number },
 ): QueryResult<VerificationResult> {
   const [nonce, setNonce] = useState(0);
   const [state, setState] = useState<Omit<QueryResult<VerificationResult>, "refetch">>({
@@ -144,7 +144,12 @@ export function useCredential(
   });
   const optsRef = useRef(opts);
   optsRef.current = opts;
-  const cacheKey = credential === null ? null : credential.proof.signatureHex;
+  // The suffix lets parents force revalidation (e.g. after a revocation)
+  // for a credential whose signature (the natural cache key) is unchanged.
+  const cacheKey =
+    credential === null
+      ? null
+      : `${credential.proof.signatureHex}|${opts?.cacheSuffix ?? ""}`;
 
   useEffect(() => {
     if (credential === null || cacheKey === null) {

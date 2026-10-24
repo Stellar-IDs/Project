@@ -36,6 +36,11 @@ export interface CredentialBadgeProps {
   network?: NetworkConfig;
   /** Injected verifier for tests and stories. */
   verify?: (credential: VerifiableCredential) => Promise<VerificationResult>;
+  /**
+   * Change to force revalidation (e.g. increment after revoking — the
+   * signature cache key is unchanged by a revocation).
+   */
+  refreshToken?: string | number;
 }
 
 function statusOf(
@@ -81,8 +86,13 @@ export function CredentialBadge({
   credential,
   network,
   verify,
+  refreshToken,
 }: CredentialBadgeProps): React.JSX.Element {
-  const { data, error, status } = useCredential(credential, { network, verify });
+  const { data, error, status } = useCredential(credential, {
+    network,
+    verify,
+    cacheSuffix: refreshToken,
+  });
   const badge = credential === null ? "unknown" : statusOf(data, error, status);
   return (
     <span className={`sid-badge sid-badge--${badge}`} role="status" aria-live="polite">
