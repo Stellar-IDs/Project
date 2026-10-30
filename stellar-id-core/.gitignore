@@ -1,0 +1,9 @@
+target/
+test_snapshots/
+*.log
+
+# Local Stellar CLI config/identities — never commit keys.
+.stellar/
+.env*
+!.env.example
+.DS_Store
