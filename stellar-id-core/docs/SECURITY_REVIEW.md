@@ -9,7 +9,7 @@ The contract is testnet-only.
 
 | Item | Status |
 |---|---|
-| `cargo audit` / `cargo deny` | Not run (tools not installed/configured here). |
+| `cargo deny` | Not configured. (`cargo audit` was run; see below.) |
 | Soroban Guard static analysis | Not run. |
 | Fresh-session adversarial pass | Not run; this review was done in the same session that read the code. |
 | Fuzz / property tests | None. |
@@ -26,6 +26,7 @@ The contract is testnet-only.
 | F-5 | Info | `verify_credential_proof` verifies a signature over the raw 32-byte credential hash with no domain-separation prefix. A signature is bound to the key and hash, not to a purpose. | **Accepted.** Hash input is the JCS credential, which includes issuer and subject ids. Sign-in challenges must use a distinct prefixed message (client SDK concern; verify there). |
 | F-6 | Info | `anchor_credential` accepts an `expires_at` already in the past (credential is immediately `Expired`). | **Accepted.** Harmless. |
 | F-7 | Info | Doc comment for `credential_status` was attached to `verify_credential_proof`. | **Fixed.** |
+| F-8 | Medium (availability) | `ContractError` variants had no doc comments. stellar-sdk clients build `Err({ message })` from those docs, so every contract error reached clients as an empty message: a missing DID could not be told apart from any other failure, and the demo's sign-in for new wallets failed with an opaque error. Found by the demo e2e. | **Fixed.** Each variant is now documented, starting with its name. Verified live: resolving an unregistered address raises `DidNotFoundError` (client integration test). |
 
 ## Checklist (PLAYBOOK §8 Phase 7)
 
@@ -44,8 +45,18 @@ The contract is testnet-only.
 
 ## Deployment note
 
-Redeployed to testnet on 2026-10-31 as
-`CAFPRFXKOSHELQAB7TRMLEUEYIVYRJIKSZIZ6UU5WXB5DDEUMCBHGAWV` with the
-F-1/F-3 fixes. F-3 was confirmed live: an 11-entry `authentication` list
-fails simulation with `Error(Contract, #9)` (`LimitExceeded`). The earlier
-deployment `CBFXX2HC…TXXE` lacks the fixes and is superseded.
+Redeployed to testnet on 2026-10-31 with the F-1/F-3 fixes
+(`CAFPRFXK…GAWV`). F-3 was confirmed live: an 11-entry `authentication`
+list fails simulation with `Error(Contract, #9)` (`LimitExceeded`). The
+same day it was redeployed again as
+`CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT` after F-8.
+Earlier deployments are superseded (see `deployments/testnet.json`).
+
+## Dependency audit (2026-10-31)
+
+`cargo audit` (advisory DB of that date, 215 crates): **RUSTSEC-2026-0387**
+(`crypto-bigint` 0.5.5, timing variability). It reaches this crate only via
+`soroban-env-host` → `k256`/`p256`, the host used by tests; `cargo tree
+--target wasm32v1-none` shows it is not in the contract wasm. **Accepted**
+until soroban-sdk ships a host on the patched line. `paste` is flagged as
+unmaintained (warning only, proc-macro, build-time).

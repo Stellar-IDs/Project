@@ -2,7 +2,8 @@
 
 Measured on **testnet** on 2026-10-31 against contract
 `CAFPRFXKOSHELQAB7TRMLEUEYIVYRJIKSZIZ6UU5WXB5DDEUMCBHGAWV` (wasm hash
-`5cc2f2b5…49a7`, 21329 bytes) with `stellar contract invoke --cost`
+`5cc2f2b5…49a7`, 21329 bytes; the current deployment differs only by
+error-variant doc comments, 21909 bytes, not re-measured) with `stellar contract invoke --cost`
 (stellar CLI 28.1.0). One run per call, small inputs (1–2 verification
 methods, 1 service). Fees are in stroops (1 XLM = 10,000,000 stroops) and
 depend on network fee settings at the time — treat them as a baseline, not
@@ -32,6 +33,7 @@ Structural facts:
 
 | Item | Value |
 |---|---|
+| Contract wasm size (current) | 21909 bytes |
 | Persistent entries per DID | 1 (`DataKey::Did(controller)`) |
 | Persistent entries per credential | 1 (`DataKey::Credential(issuer, hash)`) |
 | TTL policy | Extend to ~30 days when below ~2 days on every write; `bump_ttl` for DIDs |
