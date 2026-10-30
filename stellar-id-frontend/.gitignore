@@ -1,0 +1,17 @@
+node_modules/
+dist/
+storybook-static/
+coverage/
+*.tsbuildinfo
+*.log
+
+# demo (Next.js + Playwright)
+.next/
+out/
+test-results/
+playwright-report/
+blob-report/
+
+.env*
+!.env.example
+.DS_Store

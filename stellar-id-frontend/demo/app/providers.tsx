@@ -7,8 +7,8 @@
  * - `?demowallet=1`: throwaway in-browser keypair, friendbot-funded, for
  *   automation (Playwright) and one-click tries. Never use with real funds.
  * - Manual secret entry below (also testnet-only).
- * Real-wallet (Freighter etc.) testing follows the manual steps in the demo
- * README; the library's WalletsKitSigner is interface-tested in CI.
+ * Browser-extension wallets (WalletsKitSigner) are not wired in yet; see the
+ * demo README for the manual test steps.
  */
 import "stellar-id-frontend/styles.css";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -16,7 +16,12 @@ import { Buffer } from "buffer";
 import { Keypair, StrKey } from "@stellar/stellar-sdk";
 import { SessionProvider } from "stellar-id-frontend";
 import type { Signer } from "stellar-id-client";
-import { KeypairSigner } from "stellar-id-client";
+import {
+  createIdentity,
+  DidNotFoundError,
+  KeypairSigner,
+  resolveIdentity,
+} from "stellar-id-client";
 
 if (typeof globalThis.Buffer === "undefined") {
   (globalThis as Record<string, unknown>)["Buffer"] = Buffer;
@@ -43,6 +48,23 @@ async function fundedThrowaway(): Promise<KeypairSigner> {
 }
 
 /**
+ * Sign-in verifies against the on-chain DID, so a new wallet must register
+ * one first: the account key becomes `key-1` (authentication + assertion).
+ */
+async function ensureDid(signer: Signer): Promise<void> {
+  const address = await signer.publicKey();
+  try {
+    await resolveIdentity(`did:stellar:testnet:${address}`);
+  } catch (err) {
+    if (!(err instanceof DidNotFoundError)) {
+      throw err;
+    }
+    const keyHex = StrKey.decodeEd25519PublicKey(address).toString("hex");
+    await createIdentity({ signer, keys: [{ id: "key-1", publicKeyHex: keyHex }] });
+  }
+}
+
+/**
  * Demo providers: session with a pluggable demo signer.
  *
  * @param children - Page content.
@@ -57,8 +79,28 @@ export function DemoProviders({
 }) {
   const [secret, setSecret] = useState("");
   const [signer, setSigner] = useState<Signer | null>(null);
-  const [booting, setBooting] = useState(autoWallet);
+  const [booting, setBooting] = useState<string | null>(
+    autoWallet ? "Funding demo wallet…" : null,
+  );
   const [error, setError] = useState<string | null>(null);
+  const [secretError, setSecretError] = useState<string | null>(null);
+
+  const adopt = (next: Signer, isCancelled: () => boolean = () => false): void => {
+    setBooting("Registering your testnet DID…");
+    ensureDid(next)
+      .then(() => {
+        if (!isCancelled()) {
+          setSigner(next);
+          setBooting(null);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!isCancelled()) {
+          setError(err instanceof Error ? err.message : String(err));
+          setBooting(null);
+        }
+      });
+  };
 
   useEffect(() => {
     if (!autoWallet || signer !== null) {
@@ -68,19 +110,20 @@ export function DemoProviders({
     fundedThrowaway()
       .then((next) => {
         if (!cancelled) {
-          setSigner(next);
-          setBooting(false);
+          adopt(next, () => cancelled);
         }
       })
       .catch((err: unknown) => {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : String(err));
-          setBooting(false);
+          setBooting(null);
         }
       });
     return () => {
       cancelled = true;
     };
+    // `adopt` is left out of the deps on purpose: it only touches state
+    // setters, and re-running this effect would fund another wallet.
   }, [autoWallet, signer]);
 
   const useManual = () => {
@@ -88,11 +131,12 @@ export function DemoProviders({
     try {
       // Validate before adopting (throws on garbage).
       StrKey.decodeEd25519SecretSeed(trimmed);
-      setSigner(KeypairSigner.fromSecret(trimmed));
-      setError(null);
     } catch {
-      setError("That does not look like a valid S... secret.");
+      setSecretError("That does not look like a valid S... secret.");
+      return;
     }
+    setSecretError(null);
+    adopt(KeypairSigner.fromSecret(trimmed));
   };
 
   if (error !== null) {
@@ -108,8 +152,8 @@ export function DemoProviders({
       <main>
         <h1>Stellar Identity Demo</h1>
         <p className="banner">Testnet only — never use real funds or mainnet secrets here.</p>
-        {booting ? (
-          <p role="status">Funding demo wallet…</p>
+        {booting !== null ? (
+          <p role="status">{booting}</p>
         ) : (
           <section aria-label="Demo wallet setup">
             <p>
@@ -129,6 +173,7 @@ export function DemoProviders({
             <button type="button" onClick={useManual}>
               Use this secret
             </button>
+            {secretError !== null && <p role="alert">{secretError}</p>}
           </section>
         )}
       </main>
