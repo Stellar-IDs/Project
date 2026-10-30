@@ -2,7 +2,7 @@
 
 TypeScript SDK for the Stellar Identity & Authentication Suite: `createIdentity()`, `resolveIdentity()`, `updateIdentity()`, `deactivateIdentity()`, `issueCredential()`, `verifyCredential()`, `revokeCredential()`, sign-in challenge helpers, wallet adapters, and `toW3CDocument()` — typed wrappers around the `stellar-id-core` Soroban contract (`did:stellar` DIDs, credential anchoring, revocation).
 
-**Status:** testnet / v0.x. Live against testnet contract `CBFXX2HCWDIQR45XNPLIMADAKO3N2EXMHJWSGNGNMJQR67TKZ4SCTXXE` (see `stellar-id-core/deployments/testnet.json`). Not published to npm yet (Phase 7 step). Mainnet is an explicit non-goal for v1.
+**Status:** testnet / v0.x. Live against testnet contract `CAFPRFXKOSHELQAB7TRMLEUEYIVYRJIKSZIZ6UU5WXB5DDEUMCBHGAWV` (see `stellar-id-core/deployments/testnet.json`). Not published to npm yet (Phase 7 step). Mainnet is an explicit non-goal for v1.
 
 ## Install
 
