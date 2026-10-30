@@ -2,13 +2,15 @@
   "name": "stellar-id-frontend-demo",
   "version": "0.1.0",
   "private": true,
-  "description": "Next.js demo app for stellar-id-frontend (Phase 0 scaffold; the wallet flow lands in Phase 5)",
+  "description": "Next.js testnet demo for stellar-id-frontend: DID registration, sign-in, credential issue/revoke",
   "license": "Apache-2.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "e2e": "playwright test",
+    "e2e:offline": "playwright test --grep-invert @testnet"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^16.4.1",
@@ -20,6 +22,7 @@
     "stellar-id-frontend": "workspace:^0.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@types/node": "^24.0.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
