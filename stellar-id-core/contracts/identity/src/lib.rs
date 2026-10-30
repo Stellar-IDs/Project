@@ -338,6 +338,11 @@ impl IdentityContract {
         if record.deactivated {
             return Err(ContractError::Deactivated);
         }
+        if authentication.len() > MAX_VERIFICATION_METHODS
+            || assertion_method.len() > MAX_VERIFICATION_METHODS
+        {
+            return Err(ContractError::LimitExceeded);
+        }
         for id in &authentication {
             if !record.verification_methods.iter().any(|vm| vm.id == id) {
                 return Err(ContractError::InvalidVerificationMethod);
@@ -537,12 +542,6 @@ impl IdentityContract {
         Ok(())
     }
 
-    /// Return the on-chain status of a credential hash (read-only, no auth).
-    ///
-    /// - `Unknown`: never anchored under this `(issuer, hash)` pair.
-    /// - `Active`: anchored, not revoked, not expired.
-    /// - `Revoked`: explicitly revoked (terminal, takes precedence over expiry).
-    /// - `Expired`: past `expires_at` per the current ledger timestamp.
     /// Verify an Ed25519 credential proof against the issuer's DID.
     ///
     /// Loads the issuer's DID (must exist and not be deactivated), finds
@@ -592,6 +591,12 @@ impl IdentityContract {
         Ok(())
     }
 
+    /// Return the on-chain status of a credential hash (read-only, no auth).
+    ///
+    /// - `Unknown`: never anchored under this `(issuer, hash)` pair.
+    /// - `Active`: anchored, not revoked, not expired.
+    /// - `Revoked`: explicitly revoked (terminal, takes precedence over expiry).
+    /// - `Expired`: past `expires_at` per the current ledger timestamp.
     // TODO(wave: core-3): batched revocation lists plug in here — the
     // public signature stays stable while internals gain index lookups.
     pub fn credential_status(
@@ -626,6 +631,11 @@ impl IdentityContract {
             return Err(ContractError::InvalidInput);
         }
         if doc.services.len() > MAX_SERVICES {
+            return Err(ContractError::InvalidInput);
+        }
+        if doc.authentication.len() > MAX_VERIFICATION_METHODS
+            || doc.assertion_method.len() > MAX_VERIFICATION_METHODS
+        {
             return Err(ContractError::InvalidInput);
         }
 
@@ -670,6 +680,9 @@ impl IdentityContract {
             }
             seen_svc_ids.push_back(svc.id.clone());
 
+            if svc.kind.len() > MAX_ID_LENGTH {
+                return Err(ContractError::InvalidInput);
+            }
             if svc.endpoint.len() > MAX_ENDPOINT_LENGTH {
                 return Err(ContractError::InvalidInput);
             }
@@ -1386,6 +1399,95 @@ mod tests {
         // Old address no longer resolves.
         let result = client.try_resolve(&alice);
         assert_eq!(result, Err(Ok(ContractError::NotFound)));
+    }
+
+    /// SECURITY_REVIEW F-1: `create_did` must bound service `kind` like
+    /// `add_service` does.
+    #[test]
+    fn create_did_oversize_service_kind_fails() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let controller = Address::generate(&env);
+        let long_kind = "k".repeat(129);
+        let svc = create_test_svc(&env, "svc-1", &long_kind, "https://example.com");
+        let doc = NewDidDoc {
+            controller: controller.clone(),
+            verification_methods: Vec::new(&env),
+            authentication: Vec::new(&env),
+            assertion_method: Vec::new(&env),
+            services: Vec::from_array(&env, [svc]),
+        };
+
+        let result = client.try_create_did(&controller, &doc);
+        assert_eq!(result, Err(Ok(ContractError::InvalidInput)));
+    }
+
+    /// SECURITY_REVIEW F-3: relationship lists must be bounded even when
+    /// every entry references a valid method (duplicates).
+    #[test]
+    fn relationship_lists_are_bounded() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let alice = Address::generate(&env);
+        create_did_with_vms(&env, &client, &alice, &["key-1"], &["key-1"], &[]);
+
+        let mut dup = Vec::new(&env);
+        for _ in 0..=MAX_VERIFICATION_METHODS {
+            dup.push_back(String::from_str(&env, "key-1"));
+        }
+        let result = client.try_set_relationships(&alice, &dup, &Vec::new(&env));
+        assert_eq!(result, Err(Ok(ContractError::LimitExceeded)));
+
+        let bob = Address::generate(&env);
+        let doc = NewDidDoc {
+            controller: bob.clone(),
+            verification_methods: Vec::from_array(&env, [create_test_vm(&env, "key-1", [1u8; 32])]),
+            authentication: dup,
+            assertion_method: Vec::new(&env),
+            services: Vec::new(&env),
+        };
+        let result = client.try_create_did(&bob, &doc);
+        assert_eq!(result, Err(Ok(ContractError::InvalidInput)));
+    }
+
+    /// SECURITY_REVIEW F-2 (accepted, pinned): credentials stay keyed by the
+    /// old address after rotation, so re-creating a DID at that address
+    /// makes them resolve under the new document. Issuers who rotate must
+    /// revoke old credentials first; this test documents the behavior.
+    #[test]
+    fn rotate_then_recreate_old_address_inherits_old_credentials() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let client = setup_contract(&env);
+
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        create_did_with_vms(&env, &client, &alice, &["key-1"], &["key-1"], &[]);
+        let hash = BytesN::from_array(&env, &[7u8; 32]);
+        client.anchor_credential(&alice, &hash, &None);
+
+        client.rotate_controller(&alice, &bob);
+        // The orphaned credential is still Active for the old address.
+        assert_eq!(
+            client.credential_status(&alice, &hash),
+            CredentialStatus::Active
+        );
+
+        create_did_with_vms(&env, &client, &alice, &["key-2"], &["key-2"], &[]);
+        assert_eq!(
+            client.credential_status(&alice, &hash),
+            CredentialStatus::Active
+        );
+        // ...and the old issuer can still wind it down.
+        client.revoke_credential(&alice, &hash);
+        assert_eq!(
+            client.credential_status(&alice, &hash),
+            CredentialStatus::Revoked
+        );
     }
 
     #[test]
