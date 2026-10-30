@@ -13,7 +13,6 @@ The contract is testnet-only.
 | Soroban Guard static analysis | Not run. |
 | Fresh-session adversarial pass | Not run; this review was done in the same session that read the code. |
 | Fuzz / property tests | None. |
-| Resource measurements | None — see `COSTS.md`. |
 | Independent audit | None. |
 
 ## Findings
@@ -45,6 +44,8 @@ The contract is testnet-only.
 
 ## Deployment note
 
-The deployed testnet contract (see `STATUS.md`) predates the F-1/F-3 fixes.
-It must be redeployed (and bindings regenerated) before the client SDK
-relies on the fixed behavior.
+Redeployed to testnet on 2026-10-31 as
+`CAFPRFXKOSHELQAB7TRMLEUEYIVYRJIKSZIZ6UU5WXB5DDEUMCBHGAWV` with the
+F-1/F-3 fixes. F-3 was confirmed live: an 11-entry `authentication` list
+fails simulation with `Error(Contract, #9)` (`LimitExceeded`). The earlier
+deployment `CBFXX2HC…TXXE` lacks the fixes and is superseded.

@@ -2,13 +2,23 @@
   "network": "testnet",
   "network_passphrase": "Test SDF Network ; September 2015",
   "rpc_url": "https://soroban-testnet.stellar.org",
-  "contract_id": "CBFXX2HCWDIQR45XNPLIMADAKO3N2EXMHJWSGNGNMJQR67TKZ4SCTXXE",
-  "wasm_hash": "400726ecf5529f2fff8ece0bcf6f7e2411af289f2a4fb5634944f2db51e8e332",
-  "wasm_size_bytes": 21089,
+  "contract_id": "CAFPRFXKOSHELQAB7TRMLEUEYIVYRJIKSZIZ6UU5WXB5DDEUMCBHGAWV",
+  "wasm_hash": "5cc2f2b560437c80d365c459f65263095f5e88ce0773f72d92ce81df81ef49a7",
+  "wasm_size_bytes": 21329,
   "deployer": "GA2DO5BZPTPE4OPB46XXZF37VGIJXG7D535QU4GWYJLZYISSXOZKKF4M",
-  "deployed_at": "2026-10-15",
+  "deployed_at": "2026-10-31",
   "stellar_cli": "28.1.0",
   "soroban_sdk": "28.0.0",
-  "git_commit": "e83df29",
-  "notes": "First testnet deployment (Phase 3). Redeploys are expected on testnet resets — append a dated entry here rather than overwriting."
+  "git_commit": "95b0feb",
+  "notes": "Redeploy with SECURITY_REVIEW F-1/F-3 fixes. Redeploys are expected on testnet resets — move the current entry into `history` rather than overwriting.",
+  "history": [
+    {
+      "contract_id": "CBFXX2HCWDIQR45XNPLIMADAKO3N2EXMHJWSGNGNMJQR67TKZ4SCTXXE",
+      "wasm_hash": "400726ecf5529f2fff8ece0bcf6f7e2411af289f2a4fb5634944f2db51e8e332",
+      "wasm_size_bytes": 21089,
+      "deployed_at": "2026-10-15",
+      "git_commit": "e83df29",
+      "notes": "First testnet deployment (Phase 3). Superseded: lacks F-1/F-3 fixes."
+    }
+  ]
 }
