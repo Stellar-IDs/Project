@@ -39,7 +39,15 @@ const CONTRACT_ERROR_NAMES = [
  * a declared contract error.
  */
 export function contractErrorName(err: unknown): string | undefined {
-  const message = err instanceof Error ? err.message : String(err);
+  // `Result.unwrapErr()` yields a plain `{ message }` (stellar-sdk
+  // `ErrorMessage`), not an `Error`, so read `message` structurally.
+  const message =
+    typeof err === "object" &&
+    err !== null &&
+    "message" in err &&
+    typeof err.message === "string"
+      ? err.message
+      : String(err);
   return CONTRACT_ERROR_NAMES.find((name) => new RegExp(`\\b${name}\\b`).test(message));
 }
 
