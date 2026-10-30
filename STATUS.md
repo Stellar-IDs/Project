@@ -1,8 +1,8 @@
 # STATUS
 
-**Updated:** 2026-10-14
-**Current phase:** 1 — Core contract: DID lifecycle
-**Current task:** UNATTENDED RUN — Phase 4 complete (SDK live on testnet: 40 unit tests + integration lifecycle green, example green, publint clean). Starting Phase 5 frontend. Gates 1b/3/4/5/7 human sign-offs deferred, see Decisions.
+**Updated:** 2026-10-31
+**Current phase:** 7 — Hardening and release prep (self-review done; human-only steps remain)
+**Current task:** All four packages pass their verify commands as of this update: core (59 tests, wasm 21329 B), client (40 pass, 1 skipped integration), frontend (26 tests), docs (3 tests, link-checked build). Phases 0–6 are implemented; Phase 7 security review is logged in `stellar-id-core/docs/SECURITY_REVIEW.md`. Gates 1b/3/4/5/7 human sign-offs still deferred.
 
 ## Environment / pinned versions
 
@@ -48,10 +48,15 @@ Contract build: `stellar_id_core.wasm`, **21089 bytes**, hash `400726ecf5529f2ff
 - [x] Phase 2 acceptance artifact: `stellar-id-core/docs/test-vectors.json` (JCS canonical + SHA-256 + Ed25519 vectors incl. one invalid-sig vector), byte-identical canonical string to the Rust test const (verified by script)
 - [x] Phase 1 update-functions: `add/remove_verification_method` (8 tests), `set_relationships` (3), `add/remove_service` (6), `deactivate_did` + mutation-rejection matrix + revoke-after-deactivate + verify-after-deactivate (5), `rotate_controller` + `bump_ttl` (10) — 56 tests total, all green; every mutating fn has require_auth + version bump + event; no-auth failure test per group
 
-## In progress
-- (nothing — Phase 1 `create_did` + `resolve` complete)
+- [x] Phase 3–6: deployment + bindings, client SDK, frontend components/hooks/withAuth/stories/demo, docs site (see git log)
+- [x] Phase 7 (partial): manual security review with fixes F-1 (service kind bound) and F-3 (relationship list bound), regression tests, `docs/SECURITY_REVIEW.md`, honest `docs/COSTS.md` (no measurements yet)
 
-## Next
+## In progress
+- (nothing)
+
+## Next (needs a human or a decision)
+0. **Redeploy the contract to testnet** and run `scripts/sync-bindings.sh` — the deployed wasm (hash below) predates the F-1/F-3 fixes (new wasm is 21329 bytes). Needs `stellar keys` deployer. Client/frontend commits will follow the regenerated bindings.
+0a. Not done: `cargo audit`/`cargo deny`, Soroban Guard, fresh-session adversarial pass, fuzz tests, resource measurements (COSTS.md), Playwright e2e with mocked wallet (Phase 5 task 7), manual real-wallet test, Vercel deploy, CHANGELOGs/Changesets, npm publish, Phase 8 split. Open design items: SECURITY_REVIEW F-2 (credentials survive rotation), F-4 (no credential TTL bump).
 1. Phase 1 Gate 1b: human reads the whole contract, reruns tests, signs off the public interface in STATUS.md ("Interface frozen at commit abc123"). Open review items for the gate: (a) `create_did` returns `InvalidInput` for limit violations while new `add_*` functions return `LimitExceeded` — spec §3.3 says `LimitExceeded`; unify? (b) rotation moves the record (old key 404s, old credentials orphaned) — acceptable? (c) `revoke_credential` allowed after deactivation (safety action) — acceptable?
 2. Phase 3: testnet deploy + TypeScript bindings (needs `stellar keys` identities — see Blockers)
 
