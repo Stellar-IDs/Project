@@ -13,6 +13,7 @@ import {
   createIdentity,
   CredentialRevokedError,
   deactivateIdentity,
+  DidNotFoundError,
   issueCredential,
   KeypairSigner,
   resolveIdentity,
@@ -39,6 +40,13 @@ describe.skipIf(!RUN)("testnet lifecycle", () => {
     async () => {
       const signer = await fundedSigner();
       const address = await signer.publicKey();
+
+      // Regression: on-chain NotFound must surface as a typed error (needs
+      // documented ContractError variants in the deployed contract spec).
+      await expect(resolveIdentity(`did:stellar:testnet:${address}`)).rejects.toBeInstanceOf(
+        DidNotFoundError,
+      );
+
       // key-1 is the account key itself, so later issuance verifies.
       const accountKeyHex = StrKey.decodeEd25519PublicKey(address).toString("hex");
 
