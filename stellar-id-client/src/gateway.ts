@@ -17,7 +17,10 @@ import {
 import type { NetworkConfig } from "./networks.js";
 import type { Signer } from "./signers.js";
 
-/** Known contract error names (see generated `ContractError`). */
+/**
+ * Known contract error names (see generated `ContractError`), indexed by
+ * code - 1: the order must match the contract's `#[repr(u32)]` values.
+ */
 const CONTRACT_ERROR_NAMES = [
   "NotFound",
   "AlreadyExists",
@@ -48,6 +51,11 @@ export function contractErrorName(err: unknown): string | undefined {
     typeof err.message === "string"
       ? err.message
       : String(err);
+  // Failed write simulations carry only the host error code.
+  const code = /Error\(Contract, #(\d+)\)/.exec(message);
+  if (code !== null) {
+    return CONTRACT_ERROR_NAMES[Number(code[1]) - 1];
+  }
   return CONTRACT_ERROR_NAMES.find((name) => new RegExp(`\\b${name}\\b`).test(message));
 }
 

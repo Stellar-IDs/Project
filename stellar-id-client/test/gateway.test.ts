@@ -16,6 +16,14 @@ describe("contractErrorName", () => {
     expect(contractErrorName({ message: "LimitExceeded" })).toBe("LimitExceeded");
   });
 
+  it("maps host error codes from failed simulations", () => {
+    expect(contractErrorName(new Error('HostError: Error(Contract, #2)\n\nEvent log'))).toBe(
+      "AlreadyExists",
+    );
+    expect(contractErrorName(new Error("HostError: Error(Contract, #9)"))).toBe("LimitExceeded");
+    expect(contractErrorName(new Error("HostError: Error(Contract, #99)"))).toBeUndefined();
+  });
+
   it("returns undefined for unrelated failures", () => {
     expect(contractErrorName(new Error("boom"))).toBeUndefined();
     expect(contractErrorName(null)).toBeUndefined();
