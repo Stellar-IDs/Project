@@ -1,8 +1,8 @@
 # STATUS
 
 **Updated:** 2026-10-31
-**Current phase:** 7 — Hardening and release prep (self-review done; human-only steps remain)
-**Current task:** All four packages pass their verify commands as of this update: core (59 tests, wasm 21329 B), client (40 pass, 1 skipped integration), frontend (26 tests), docs (3 tests, link-checked build). Phases 0–6 are implemented; Phase 7 security review is logged in `stellar-id-core/docs/SECURITY_REVIEW.md`. Gates 1b/3/4/5/7 human sign-offs still deferred.
+**Current phase:** 8 — Split, publish, seed issues (local prep done; every remaining step needs the human's accounts or sign-off)
+**Current task:** All four packages pass their verify commands as of this update: core (59 tests, wasm 21909 B), client (47 pass + 1 integration test, which passes live on testnet), frontend (26 unit tests; demo Playwright e2e 2/2 incl. full testnet flow), docs (3 tests, link-checked build). Split dry run: core, client and docs verify standalone. Gates 1b/3/4/5/7 human sign-offs still deferred.
 
 ## Environment / pinned versions
 
@@ -49,16 +49,23 @@ Contract build: `stellar_id_core.wasm`, **21089 bytes**, hash `400726ecf5529f2ff
 - [x] Phase 1 update-functions: `add/remove_verification_method` (8 tests), `set_relationships` (3), `add/remove_service` (6), `deactivate_did` + mutation-rejection matrix + revoke-after-deactivate + verify-after-deactivate (5), `rotate_controller` + `bump_ttl` (10) — 56 tests total, all green; every mutating fn has require_auth + version bump + event; no-auth failure test per group
 
 - [x] Phase 3–6: deployment + bindings, client SDK, frontend components/hooks/withAuth/stories/demo, docs site (see git log)
-- [x] Phase 7 (partial): manual security review with fixes F-1 (service kind bound) and F-3 (relationship list bound), regression tests, `docs/SECURITY_REVIEW.md`, honest `docs/COSTS.md` (no measurements yet)
+- [x] Phase 7: security self-review (F-1, F-3, F-8 fixed with regression tests; F-2, F-4 open for Gate 1b), `cargo audit` (one host-only advisory, accepted), `pnpm audit` (Next.js critical + axios/qs/body-parser/fast-uri/postcss-selector-parser fixed in-range), testnet redeploy + fee measurements (`docs/COSTS.md`), CHANGELOGs, README honesty pass on all four packages
+- [x] Phase 5 leftovers: demo registers the DID before sign-in (new wallets couldn't sign in before), Playwright e2e (offline + full testnet flow) green
+- [x] Phase 6 acceptance substance: Node quick start rewritten and run verbatim from a clean folder against testnet with a packed client tarball (the old one was broken: key-less DID, then issued with key-1)
+- [x] Phase 8 local prep: `scripts/split.sh` (non-destructive) dry-run verified; package-level `.gitignore`s; `TODO(wave: …)` markers for all 16 issues; issue drafts in each package's `.github/wave-issues/`
 
 ## In progress
 - (nothing)
 
 ## Next (needs a human or a decision)
-0. **Redeploy the contract to testnet** and run `scripts/sync-bindings.sh` — the deployed wasm (hash below) predates the F-1/F-3 fixes (new wasm is 21329 bytes). Needs `stellar keys` deployer. Client/frontend commits will follow the regenerated bindings.
-0a. Not done: `cargo audit`/`cargo deny`, Soroban Guard, fresh-session adversarial pass, fuzz tests, resource measurements (COSTS.md), Playwright e2e with mocked wallet (Phase 5 task 7), manual real-wallet test, Vercel deploy, CHANGELOGs/Changesets, npm publish, Phase 8 split. Open design items: SECURITY_REVIEW F-2 (credentials survive rotation), F-4 (no credential TTL bump).
-1. Phase 1 Gate 1b: human reads the whole contract, reruns tests, signs off the public interface in STATUS.md ("Interface frozen at commit abc123"). Open review items for the gate: (a) `create_did` returns `InvalidInput` for limit violations while new `add_*` functions return `LimitExceeded` — spec §3.3 says `LimitExceeded`; unify? (b) rotation moves the record (old key 404s, old credentials orphaned) — acceptable? (c) `revoke_credential` allowed after deactivation (safety action) — acceptable?
-2. Phase 3: testnet deploy + TypeScript bindings (needs `stellar keys` identities — see Blockers)
+1. **Publish `stellar-id-client` to npm** (name is unclaimed: registry 404). Blocks the frontend split (its `workspace:` dep becomes `^0.1.0`) and the docs' install commands. Then publish `stellar-id-frontend`.
+2. **Split:** create four empty GitHub repos, then `./scripts/split.sh ../stellar-id-split <org>` (needs git-filter-repo and pnpm 12 on PATH). Push manually after review. Retag `core-v0.1.0`? It points at the first deployment (e83df29), not the current contract; consider `core-v0.1.1` at HEAD.
+3. **Seed issues** from `.github/wave-issues/*.md` with `gh issue create --body-file`, staggered per §11 program limits.
+4. **Real-wallet test:** the demo isn't wired to `WalletsKitSigner`; no extension wallet has been tried (client-2 Wave issue covers it).
+5. **Host the demo and docs** (Vercel or similar). Not done: needs the human's account.
+6. Not done (Phase 7 extras): `cargo deny`, Soroban Guard, fresh-session adversarial pass, fuzz tests, axe in Storybook, Changesets (set up per repo after the split; inside the monorepo the CLI treats the whole workspace as one project).
+7. Phase 1 Gate 1b: human reads the whole contract, reruns tests, signs off the public interface in STATUS.md ("Interface frozen at commit abc123"). Open review items for the gate: (a) `create_did` returns `InvalidInput` for limit violations while new `add_*` functions return `LimitExceeded` — spec §3.3 says `LimitExceeded`; unify? (b) rotation moves the record (old key 404s, old credentials orphaned) — acceptable? (c) `revoke_credential` allowed after deactivation (safety action) — acceptable?
+   Also decide SECURITY_REVIEW F-2 (credentials survive controller rotation) and F-4 (no credential TTL bump).
 
 ## Decisions (append-only, dated)
 - 2026-10-13: soroban-sdk pinned to 28.0.0 to match stellar CLI 28.1.0 major. SDK 29.0.1 exists but no CLI v29 is released — do not mix majors.
@@ -88,15 +95,23 @@ Contract build: `stellar_id_core.wasm`, **21089 bytes**, hash `400726ecf5529f2ff
 - 2026-10-15 (Phase 3): deployed first try failed transiently on WASM upload (`client error (Connect)`), retry succeeded. Friendbot rate-limits back-to-back funding (smoke failed, then `stellar keys fund` worked minutes later). CLI 28.1.0: `stellar contract bindings typescript` is deprecated (still works); `--is-view` deprecated → use `--send=no`. Bindings embed @stellar/stellar-sdk ^16.0.1 → client pins ^16.0.1 (resolves 16.3.1); latest 17.2.1 NOT adopted (generator-compat). Gate 3 substance covered by CLI smoke transcript (docs/SMOKE_TEST.md); human re-confirmation pending.
 - 2026-10-15 (unattended run): user ordered a continuous build Phases 3→7 with no human in the loop. Gates 1b/3/4/5/7 human sign-offs are DEFERRED (recorded as pending, not skipped-silently); implementation proceeds on the current interface. AGENTS.md rule-10 "stop and ask" items that arise will be resolved conservatively and logged here instead of blocking. `opencode.json`: `edit` loosened to `allow` per PLAYBOOK Appendix B guidance (`bash *` was already `allow`); `git push`/`rm -rf` stays `deny`; no pushes will be made. Restart opencode to reload config; consider reverting `edit` to `ask` after the run.
 
+- 2026-10-31: contract redeployed twice on testnet (F-1/F-3 fixes, then F-8 documented error variants). Interface unchanged; bindings re-synced each time. Error variant doc comments are load-bearing: stellar-sdk builds `Err({ message })` from them, and the client maps errors by name. The client also maps `Error(Contract, #N)` codes from failed write simulations.
+- 2026-10-31: dependency security fixes kept in-range: demo `next` ^16.4.1 (16.4.3), `@stellar/stellar-sdk` ^16.4.1 (pins axios 1.20.0). Not fixed (need major-version overrides inside third-party trees, so risk of breakage): zod, uuid, stream-json, elliptic (wallets-kit tree); tinypool, serialize-javascript, deepmerge, uuid (Docusaurus build-time). `cargo audit` RUSTSEC-2026-0387 (`crypto-bigint`, host-only) accepted.
+- 2026-10-31: `@playwright/test` ^1.64.1 added to the demo (PLAYBOOK Phase 5 task 7). The "mocked wallet" is the demo's throwaway keypair; the chain is real testnet.
+- 2026-10-31: Changesets deferred to after the split (monorepo CLI would treat the workspace as one project). Hand-written CHANGELOGs in each package for now.
+- 2026-10-31: another agent session on this machine replaced the global pnpm with 9.15.9. This session used a private pnpm 12.11.2 from its scratchpad instead of touching the global install. Restore pnpm 12 globally when that session is done (`packageManager` is pnpm@12.11.2).
+
 ## Blockers / open questions
-- `stellar keys generate deployer/alice/bob --network testnet --fund` (PLAYBOOK §6 step 5) not run yet — needed from Phase 3. Testnet resets; run before deployment.
-- Windows dev machines with multi-user profiles may hit the SWC native-cache ACL rejection (`ERR_SWC_NATIVE_CACHE`): fix is a locked-down `SWC_NATIVE_BINDING_CACHE` dir (see stellar-id-docs/CONTRIBUTING.md note to be added in Phase 6, or STATUS decision above). Node 22 (playbook LTS) untested locally — system has Node 24; CI covers 20/22.
-- Demo has no dependency on stellar-id-client yet (added in Phase 5). At split time, stellar-id-frontend needs its own pnpm-workspace.yaml listing `demo` (no nested workspace file during monorepo phase — see STATUS decision in Phase 0; recorded here for the split checklist).
+- npm publish of `stellar-id-client` (human's npm account) blocks the frontend split and real `npm install` docs.
+- Windows dev machines with multi-user profiles may hit the SWC native-cache ACL rejection (`ERR_SWC_NATIVE_CACHE`): fix is a locked-down `SWC_NATIVE_BINDING_CACHE` dir (documented in the docs README). Node 22 (playbook LTS) untested locally — system has Node 24; CI covers 20/22.
+- After the split, the client repo has no `sync-bindings.sh` (it lives in the monorepo `scripts/`). Regenerate with `stellar contract bindings typescript --network testnet --contract-id <id> --output-dir <tmp>` and copy `src/index.ts` to `src/generated/index.ts`.
 
 ## Interface freeze
 - Contract interface frozen at commit: (blank until Gate 1b)
 
 ## Deployments
-- testnet contract ID: CBFXX2HCWDIQR45XNPLIMADAKO3N2EXMHJWSGNGNMJQR67TKZ4SCTXXE — wasm hash: 400726ecf5529f2fff8ece0bcf6f7e2411af289f2a4fb5634944f2db51e8e332 — deployed: 2026-10-15 (commit e83df29, tag core-v0.1.0, deployer GA2DO5BZPTPE4OPB46XXZF37VGIJXG7D535QU4GWYJLZYISSXOZKKF4M; smoke DID GD5C6OVUQB56WJWF2PUZOTMLRC7AYAL2NPVAFRLGJ23B54SB5ED3ZP7F created/updated/deactivated, still resolvable)
+- **current** testnet contract ID: CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT — wasm hash 6b0d275bf9243cb48e1a663a7f60be8a011c594474e3d50d7234a36f063cde14 (21909 B) — deployed 2026-10-31 (commit 5cd0692). Verified by client integration test, Node quick start and demo e2e.
+- superseded: CAFPRFXKOSHELQAB7TRMLEUEYIVYRJIKSZIZ6UU5WXB5DDEUMCBHGAWV (2026-10-31, commit 95b0feb; fee measurements taken here)
+- superseded: testnet contract ID: CBFXX2HCWDIQR45XNPLIMADAKO3N2EXMHJWSGNGNMJQR67TKZ4SCTXXE — wasm hash: 400726ecf5529f2fff8ece0bcf6f7e2411af289f2a4fb5634944f2db51e8e332 — deployed: 2026-10-15 (commit e83df29, tag core-v0.1.0, deployer GA2DO5BZPTPE4OPB46XXZF37VGIJXG7D535QU4GWYJLZYISSXOZKKF4M; smoke DID GD5C6OVUQB56WJWF2PUZOTMLRC7AYAL2NPVAFRLGJ23B54SB5ED3ZP7F created/updated/deactivated, still resolvable)
 
 (End of file - total 92 lines)
