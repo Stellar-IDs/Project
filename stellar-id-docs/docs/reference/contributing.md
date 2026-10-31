@@ -7,33 +7,28 @@ sidebar_position: 1
 
 # Contributing
 
-Thanks for considering a contribution! The suite is a monorepo of four
-packages that are later split into separate repos.
-
-## Monorepo Structure
-
-```
-stellar-identity-suite/
-├── stellar-id-core/        # Soroban contract (Rust)
-├── stellar-id-client/      # TypeScript SDK
-├── stellar-id-frontend/    # React components + hooks
-├── stellar-id-docs/        # This site (Docusaurus)
-├── scripts/                # verify-all.sh, sync-bindings.sh
-└── pnpm-workspace.yaml
-```
+Thanks for considering a contribution! The suite is four repositories:
+`stellar-id-core` (Soroban contract, Rust), `stellar-id-client`
+(TypeScript SDK), `stellar-id-frontend` (React components) and
+`stellar-id-docs` (this site). Dependencies only flow one way:
+core → client → frontend → docs.
 
 ## Local Setup
 
+In a clone of `stellar-id-core` (Rust stable with the `wasm32v1-none`
+target, stellar CLI 28.x):
+
 ```bash
-# Core (Rust)
-cd stellar-id-core
 cargo fmt --check
 cargo clippy --all-targets -- -D warnings
 cargo test
 stellar contract build
+```
 
-# Client / Frontend / Docs (Node)
-cd ../stellar-id-client  # or frontend, docs
+In a clone of `stellar-id-client`, `stellar-id-frontend` or
+`stellar-id-docs` (Node 20+, pnpm):
+
+```bash
 pnpm install --frozen-lockfile
 pnpm lint
 pnpm typecheck
@@ -65,8 +60,8 @@ docs(docs): add react quickstart
 |---|---|---|
 | Contract | `cargo test` | All functions, auth, limits, events |
 | SDK | `vitest` | Unit (mocked RPC) + integration (`INTEGRATION=1`) |
-| Frontend | `vitest` + `@testing-library/react` | Hooks, components, a11y (axe) |
-| Docs | `docusaurus build` | Broken-link check, snippet validity |
+| Frontend | `vitest` + `@testing-library/react`; Playwright (demo) | Hooks, components, a11y (axe); demo flow on testnet |
+| Docs | `docusaurus build` | Broken-link check (code samples are checked by hand) |
 
 ## Code Style
 

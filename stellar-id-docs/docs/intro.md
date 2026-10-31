@@ -6,28 +6,35 @@ sidebar_position: 0
 
 # Stellar Identity & Authentication Suite
 
-**Status: Phase 0 scaffold — testnet only, v0.x.**
+**Status: testnet only, v0.x, unaudited. Packages are not published to npm yet.**
 
-A standard, reusable identity layer for Stellar: a Soroban contract implementing the
-`did:stellar` DID method, a TypeScript SDK that hides XDR and Soroban complexity,
-React components that make identity-aware apps easy, and documentation that gets a
-developer from zero to a working integration.
+A reusable identity layer for Stellar, in four repositories:
 
-## What's coming (PLAYBOOK phases)
+| Repository | What it is |
+|---|---|
+| `stellar-id-core` | Soroban contract for the `did:stellar` DID method: DID documents keyed by Stellar address, plus credential-hash anchoring and revocation |
+| `stellar-id-client` | TypeScript SDK: create, resolve and update DIDs; issue, verify and revoke credentials; challenge/response sign-in |
+| `stellar-id-frontend` | React components and hooks: `SessionProvider`, `IdentityLogin`, `IdentityProfile`, `CredentialBadge`, `withAuth` |
+| `stellar-id-docs` | This site |
 
-1. `did:stellar` DID method on Soroban (contract): create, resolve, update, deactivate DIDs, verification methods, services.
-2. Verifiable credentials: off-chain JSON, issuer-signed SHA-256 hashes, on-chain anchoring and revocation.
-3. TypeScript SDK: `createIdentity()`, `resolveIdentity()`, `verifyCredential()`, sign-in challenges, wallet adapters.
-4. React components: `SessionProvider`, `IdentityLogin`, `IdentityProfile`, `CredentialBadge`, hooks, `withAuth`.
-5. Quick-starts, API reference, and best practices.
+## What works today
 
-## Right now
+- The contract is deployed on testnet with its full DID and credential
+  lifecycle (see [Contract API](./api/contract.md)).
+- The SDK runs that lifecycle end to end against testnet. The
+  [Node quick start](./quickstart/node.md) has been run verbatim from a
+  clean folder.
+- The frontend demo runs DID registration, sign-in, credential issuance and
+  revocation on testnet, with a throwaway keypair as the signer, under a
+  Playwright test.
 
-This site is the Phase 0 scaffold: structure, tooling, and CI are green, but the
-guides and API reference are written in Phases 4–6. Check the monorepo `PLAYBOOK.md`
-for the build plan, and `STATUS.md` for live progress.
+## Not yet
+
+Real extension-wallet sign-in hasn't been verified, the demo and this site
+aren't hosted, there's been no independent security audit, and mainnet is
+out of scope for v1.
 
 ## Testnet only
 
-Everything in this suite targets **Stellar testnet**. Nothing here is for mainnet
-use, and no real credentials or secrets belong in these docs.
+Everything in this suite targets **Stellar testnet**. Nothing here is for
+mainnet use, and no real credentials or secrets belong in these docs.
