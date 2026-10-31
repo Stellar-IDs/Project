@@ -7,10 +7,11 @@ TypeScript SDK for the Stellar Identity & Authentication Suite: `createIdentity(
 ## Install
 
 ```bash
-pnpm add stellar-id-client
+pnpm add stellar-id-client   # once published
 ```
 
-Requires Node 20+.
+Not on npm yet: until then, run `pnpm build && pnpm pack` here and install
+the tarball. Requires Node 20+.
 
 ## 30-second example
 
