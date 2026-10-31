@@ -1,40 +1,34 @@
 # stellar-id-docs
 
-Documentation site for the Stellar Identity & Authentication Suite, built with Docusaurus.
+Documentation site (Docusaurus 3) for the Stellar Identity & Authentication
+Suite: `stellar-id-core`, `stellar-id-client` and `stellar-id-frontend`.
 
-**Status:** Phase 0 scaffold — v0.x, testnet only. The site structure, tooling, and CI are green; the guides and API reference are written in Phases 4–6 (see `PLAYBOOK.md` §8 in the monorepo root).
+**Status:** testnet only, v0.x. **Not hosted yet**; build and preview it
+locally. The Node quick start has been run verbatim against testnet; the
+React quick start's real-wallet path is untested (it says so).
 
-## What's implemented
+## Contents
 
-- Docusaurus 3 site with docs sidebar, home page, and theme entry point
-- Link checking built into the build (`onBrokenLinks: "throw"`)
-- ESLint + Prettier + `tsc --noEmit` + a Vitest smoke test for the site config
+Overview, concepts (DIDs, `did:stellar`, credentials, revocation, TTL,
+fees), Node and React quick starts, API reference (contract, SDK,
+components), security basics, migration from password/OAuth, compatibility
+matrix, contributing.
 
 ## Development
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm dev        # local preview
-pnpm lint       # eslint
-pnpm typecheck  # tsc --noEmit
-pnpm test       # vitest
-pnpm build      # docusaurus build (fails on broken links)
+pnpm lint && pnpm typecheck && pnpm test
+pnpm build      # fails on broken links
 ```
 
-Full monorepo verification: `scripts/verify-all.sh` (from the repo root, Git Bash on Windows).
+Windows note: if the build fails with `ERR_SWC_NATIVE_CACHE`, set
+`SWC_NATIVE_BINDING_CACHE` to a directory only your user can write to.
 
-## Content plan (Phases 4–6)
+**Not yet:** hosting, versioned docs, search, and code samples pulled
+automatically from the tested examples (they are maintained by hand).
 
-Concepts (DIDs, `did:stellar` syntax, verification methods, credentials, revocation, TTL/archival, resource fees), Node and React quick-starts, API reference (contract methods, SDK exports, components and hooks), security basics, migration from traditional auth, and a compatibility matrix.
+## Contributing · Security · License
 
-## Contributing
-
-See `CONTRIBUTING.md`. Issue and PR templates live in `.github/`.
-
-## Security
-
-See `SECURITY.md`.
-
-## License
-
-Apache-2.0. See `LICENSE`.
+[CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md) · Apache-2.0 ([LICENSE](LICENSE)) · [CHANGELOG.md](CHANGELOG.md)
