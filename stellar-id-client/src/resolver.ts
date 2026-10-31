@@ -63,6 +63,8 @@ export interface ResolutionResult {
   didDocumentMetadata: DocumentMetadata | null;
 }
 
+// TODO(wave: client-3): multi-RPC failover, caching, and the archived-entry
+// restore flow plug in behind this reader (single RPC endpoint today).
 /**
  * Create a live RPC-backed reader.
  *
