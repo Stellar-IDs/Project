@@ -9,7 +9,10 @@ sidebar_position: 1
 
 | stellar-id-core | stellar-id-client | stellar-id-frontend | stellar-id-docs | Notes |
 |---|---|---|---|---|
-| 0.1.x (core-v0.1.0) | 0.1.x | 0.1.x | 0.1.x | Testnet contract `CBFXX2...` |
+| 0.1.0 (unreleased) | 0.1.0 (unpublished) | 0.1.0 (unpublished) | 0.1.0 | Testnet contract `CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT` |
+
+Nothing is released yet: there is no npm package and no final core tag.
+The client's vendored bindings target the contract above.
 
 ## Contract → SDK Coupling
 
@@ -36,15 +39,12 @@ against the deployed contract. On every contract change:
 | Testnet | `https://soroban-testnet.stellar.org` |
 | Public | (not yet defined for v1) |
 
-## Wallet Support Matrix (Tested)
+## Signer support (what has actually been tested)
 
-| Wallet / Signer | Connect | Sign Tx | Sign Message | Notes |
-|---|---|---|---|---|
-| `KeypairSigner` (secret seed) | n/a | ✅ | ✅ | Node/tests/CI only. Never in browser bundles. |
-| `WalletsKitSigner` + Freighter | via kit | ✅ | ⚠️ | Interface-tested (fake kit). Real-wallet flow untested. |
-| `WalletsKitSigner` + xBull | via kit | ✅ | ⚠️ | Interface-tested. |
-| `WalletsKitSigner` + Albedo | via kit | ✅ | ⚠️ | Interface-tested. |
-| `WalletsKitSigner` + LOBSTR | via kit | ✅ | ⚠️ | Interface-tested. |
+| Signer | Sign tx | Sign message | How it was tested |
+|---|---|---|---|
+| `KeypairSigner` (secret seed) | ✅ | ✅ | Live on testnet: client integration test, Node quick start, demo e2e (throwaway key). Node, tests and throwaway testnet keys only. |
+| `WalletsKitSigner` (any wallet) | Untested live | Untested live | Unit tests against a fake kit only. No real wallet (Freighter, xBull, Albedo, LOBSTR…) has been tried yet. |
 
 **Message signing support varies by wallet.** The SDK's
 `WalletsKitSigner.signMessage` throws `WalletError` when the
