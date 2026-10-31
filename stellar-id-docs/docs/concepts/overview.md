@@ -109,7 +109,7 @@ being archived. Archived entries require restoration before use.
 ## Network
 
 **Testnet only for v1.** The deployed contract:
-- Contract ID: `CBFXX2HCWDIQR45XNPLIMADAKO3N2EXMHJWSGNGNMJQR67TKZ4SCTXXE`
+- Contract ID: `CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT`
 - Network passphrase: `Test SDF Network ; September 2015`
 - RPC: `https://soroban-testnet.stellar.org`
 

@@ -9,7 +9,7 @@ sidebar_position: 3
 
 The Soroban contract implements the `did:stellar` DID method on Stellar testnet.
 
-**Deployed:** `CBFXX2HCWDIQR45XNPLIMADAKO3N2EXMHJWSGNGNMJQR67TKZ4SCTXXE`
+**Deployed:** `CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT`
 **WASM Hash:** `400726ecf5529f2fff8ece0bcf6f7e2411af289f2a4fb5634944f2db51e8e332`
 **RPC:** `https://soroban-testnet.stellar.org`
 

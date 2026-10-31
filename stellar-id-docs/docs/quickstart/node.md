@@ -7,99 +7,114 @@ sidebar_position: 1
 
 # Quick Start: Node.js SDK
 
-Run the full identity lifecycle on Stellar testnet in ~10 minutes.
+Run the identity lifecycle on Stellar **testnet** in about 10 minutes:
+create a DID, resolve it, issue a credential, verify it, revoke it.
 
-> **Prerequisites:** Node 20+, a funded Stellar testnet account.
+> **Prerequisites:** Node 20+ and internet access (friendbot + Soroban
+> testnet RPC). Testnet only: never use a mainnet secret.
 
-## 1. Install
-
-```bash
-pnpm add stellar-id-client @stellar/stellar-sdk
-# or: npm install stellar-id-client @stellar/stellar-sdk
-```
-
-## 2. Fund a Testnet Account
-
-If you don't have one:
+## 1. Set up a project and install
 
 ```bash
-# Generate a secret (SAVE THIS — testnet only!)
-npx -y @stellar/stellar-sdk keypair
-# → Secret: S...  Public: G...
-
-# Fund via friendbot
-curl "https://friendbot.stellar.org/?addr=G_YOUR_ADDRESS"
+mkdir stellar-id-quickstart && cd stellar-id-quickstart
+npm init -y
+npm pkg set type=module
 ```
 
-## 3. Create Your Identity
+`stellar-id-client` is **not published to npm yet**. Until it is, build a
+tarball from the source repo and install that:
 
-```ts
-// create-identity.ts
-import { KeypairSigner, createIdentity, resolveIdentity } from "stellar-id-client";
+```bash
+# in a checkout of stellar-id-client
+pnpm install && pnpm build && pnpm pack   # → stellar-id-client-0.1.0.tgz
 
-const secret = process.env.STELLAR_SECRET!; // S...
-const signer = KeypairSigner.fromSecret(secret);
+# back in stellar-id-quickstart
+npm install /path/to/stellar-id-client-0.1.0.tgz @stellar/stellar-sdk@^16.4.1
+```
 
-const identity = await createIdentity({ signer });
-console.log("Created:", identity.did); // did:stellar:testnet:G...
+Once it is published, this becomes `npm install stellar-id-client @stellar/stellar-sdk`.
+
+## 2. Create and fund a testnet account
+
+```bash
+node -e "const {Keypair}=require('@stellar/stellar-sdk');const k=Keypair.random();console.log('PUBLIC',k.publicKey());console.log('SECRET',k.secret())"
+curl "https://friendbot.stellar.org/?addr=G_YOUR_PUBLIC_KEY"
+```
+
+Keep the secret out of git: put it in a `.env` file that is gitignored, or
+in an environment variable as below.
+
+## 3. Run the lifecycle
+
+Save as `quickstart.mjs`:
+
+```js
+import { StrKey } from "@stellar/stellar-sdk";
+import {
+  KeypairSigner,
+  createIdentity,
+  issueCredential,
+  resolveIdentity,
+  revokeCredential,
+  verifyCredential,
+} from "stellar-id-client";
+
+const signer = KeypairSigner.fromSecret(process.env.STELLAR_SECRET);
+const address = await signer.publicKey();
+
+// Register the account key as `key-1`. createIdentity puts initial keys
+// in both `authentication` (sign-in) and `assertionMethod` (issuing).
+const publicKeyHex = StrKey.decodeEd25519PublicKey(address).toString("hex");
+const identity = await createIdentity({ signer, keys: [{ id: "key-1", publicKeyHex }] });
+console.log("Created:", identity.did);
 
 const resolved = await resolveIdentity(identity.did);
-console.log("Resolved:", resolved.didDocument);
-```
+console.log("Resolved version:", resolved.didDocumentMetadata?.versionId);
 
-Run it:
-```bash
-STELLAR_SECRET=S... node --loader=ts-node/esm create-identity.ts
-```
-
-## 4. Add a Verification Method
-
-```ts
-import { updateIdentity } from "stellar-id-client";
-import { Keypair } from "@stellar/stellar-sdk";
-
-const extra = Keypair.random().rawPublicKey().toString("hex");
-await updateIdentity(identity.did, { addKeys: [{ id: "key-2", publicKeyHex: extra }] }, { signer });
-```
-
-## 5. Issue & Verify a Credential
-
-```ts
-import { issueCredential, verifyCredential } from "stellar-id-client";
-
-const { credential, hash, anchorTx } = await issueCredential({
+// Issue a credential and anchor its hash on-chain (contents stay off-chain).
+const { credential, hash } = await issueCredential({
   issuerSigner: signer,
   issuerKeyId: "key-1",
   credentialSubject: { id: identity.did, role: "tester" },
-  anchor: {}, // puts hash on-chain for revocation/expiry status
+  anchor: {},
 });
-console.log("Anchored:", anchorTx);
-
-const verified = await verifyCredential(credential);
-console.log(verified); // { valid: true, did: "...", hash: "..." }
-```
-
-## 6. Revoke It
-
-```ts
-import { revokeCredential } from "stellar-id-client";
+console.log("Verified:", await verifyCredential(credential));
 
 await revokeCredential(hash, { issuerSigner: signer });
-await verifyCredential(credential); // throws CredentialRevokedError
+try {
+  await verifyCredential(credential);
+} catch (err) {
+  console.log("After revoke:", err.name); // CredentialRevokedError
+}
 ```
 
-## Complete Example
+Run it (each on-chain step takes a few seconds):
 
-See `examples/node-basic` in the `stellar-id-client` repo — it runs the
-full create → resolve → update → issue → verify → revoke → deactivate
-flow against testnet.
+```bash
+STELLAR_SECRET=S... node quickstart.mjs
+```
 
-## Testnet Notes
+On Windows PowerShell: `$env:STELLAR_SECRET="S..."; node quickstart.mjs`.
 
-- Contract: `CBFXX2HCWDIQR45XNPLIMADAKO3N2EXMHJWSGNGNMJQR67TKZ4SCTXXE`
+Running it twice with the same account fails at `createIdentity` with a
+`SimulationError` ("contract rejected the call: AlreadyExists"): one DID per
+account. Use a fresh account or skip
+that step.
+
+## More
+
+- Adding keys and services: `updateIdentity` in the
+  [API reference](../api/overview.md).
+- A fuller script (update + deactivate) lives in `examples/node-basic` in
+  the `stellar-id-client` repo.
+
+## Testnet notes
+
+- Contract: `CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT`
 - RPC: `https://soroban-testnet.stellar.org`
 - Network passphrase: `Test SDF Network ; September 2015`
-- Secrets go in `.env` (gitignored). Never commit real secrets.
+- Testnet is reset periodically; after a reset the contract is redeployed
+  under a new ID and the SDK's bindings are updated.
 
 ---
 

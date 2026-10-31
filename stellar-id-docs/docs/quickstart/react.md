@@ -17,6 +17,10 @@ Add wallet-based sign-in and identity UI to a React/Next.js app.
 pnpm add stellar-id-frontend stellar-id-client @stellar/stellar-sdk
 ```
 
+Neither package is **published to npm yet**. Until they are, install
+tarballs built with `pnpm build && pnpm pack` in each repo (see the
+[Node quick start](./node.md)).
+
 ## 2. Wrap Your App with `SessionProvider`
 
 ```tsx
@@ -25,22 +29,31 @@ pnpm add stellar-id-frontend stellar-id-client @stellar/stellar-sdk
 
 import { Buffer } from "buffer";
 import { SessionProvider } from "stellar-id-frontend";
-import { KeypairSigner } from "stellar-id-client";
+import { WalletsKitSigner } from "stellar-id-client";
 import type { Signer } from "stellar-id-client";
+import { getWalletsKit } from "./wallets-kit"; // your app's kit setup
 
 if (typeof globalThis.Buffer === "undefined") {
   (globalThis as Record<string, unknown>)["Buffer"] = Buffer;
 }
 
-function createSigner(): Signer {
-  // Replace with your wallet signer in production
-  return KeypairSigner.fromSecret(process.env.STELLAR_SECRET!);
+async function createSigner(): Promise<Signer> {
+  // An initialized @creit.tech/stellar-wallets-kit instance with a wallet
+  // selected; see the kit's own docs for its setup.
+  return new WalletsKitSigner(await getWalletsKit());
 }
 
 export function SessionProviders({ children }: { children: React.ReactNode }) {
   return <SessionProvider config={{ createSigner }}>{children}</SessionProvider>;
 }
 ```
+
+> **Never put a secret key in browser code.** `KeypairSigner` is for
+> Node, tests and throwaway testnet keys only.
+>
+> **Status:** `WalletsKitSigner` is tested against a fake kit only. Signing
+> in with a real extension wallet (Freighter etc.) has not been verified
+> yet, and message-signing support varies by wallet.
 
 ```tsx
 // app/layout.tsx
@@ -58,6 +71,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 ## 3. Add a Sign-In Button
+
+Sign-in verifies the wallet's signature against its **on-chain DID**, so
+the account must have one first (create it with `createIdentity`, as in
+the [Node quick start](./node.md)). Otherwise sign-in fails with
+`DidNotFoundError`.
 
 ```tsx
 // components/SignIn.tsx
@@ -127,8 +145,10 @@ export default withAuth(ProtectedPage, {
 
 ## Demo App
 
-See `stellar-id-frontend/demo` — it runs the full flow on testnet:
-auto-funded wallet → sign-in → profile → issue/verify/revoke credential.
+See `demo/` in the `stellar-id-frontend` repo. It runs the full flow on
+testnet with a throwaway keypair (not an extension wallet): fund, register
+the DID, sign in, show the profile, issue and revoke a credential. A
+Playwright test covers that flow. The demo is not hosted anywhere yet.
 
 ---
 
