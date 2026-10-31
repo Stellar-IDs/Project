@@ -65,6 +65,8 @@ describe("IdentityLogin", () => {
     expect(await screen.findByRole("alert")).toBeInTheDocument();
   });
 
+  // TODO(wave: frontend-4): automated axe checks are the MVP; the written
+  // WCAG audit with manual keyboard/screen-reader testing builds on them.
   it("has no axe violations", async () => {
     const { container } = renderWithSession(<IdentityLogin />, () => fakeSigner());
     expect(await axe(container)).toHaveNoViolations();
