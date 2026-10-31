@@ -1,6 +1,9 @@
 use soroban_sdk::{Address, BytesN, Env};
 
 use crate::error::ContractError;
+
+// TODO(wave: core-4): resource-fee optimization (fewer reads/writes/bytes)
+// happens in this storage layer; `docs/COSTS.md` is the baseline.
 use crate::types::{CredentialRecord, DataKey, DidRecord};
 
 /// TTL thresholds - extend when remaining TTL drops below this threshold
