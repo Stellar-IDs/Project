@@ -7,8 +7,10 @@ sidebar_position: 1
 
 # Security Basics
 
-> This is a concise checklist. The comprehensive best-practices guide is a
-> Wave issue; see `PLAYBOOK.md` §12.
+> This is a concise checklist. A comprehensive best-practices guide is
+> planned as a contributor issue.
+
+{/* TODO(wave: docs-4): the comprehensive security guide (key management, phishing, replay, revocation, privacy, incident response) expands this page. */}
 
 ## Key Handling
 

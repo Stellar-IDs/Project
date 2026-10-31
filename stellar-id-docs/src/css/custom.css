@@ -1,7 +1,6 @@
 /**
  * Global styles for the docs site.
  *
- * Intentionally minimal in Phase 0. The docs design system (colors,
- * typography) is defined in Phase 6; component theme tokens live in
- * stellar-id-frontend (Phase 5).
+ * Intentionally minimal: the site uses Docusaurus defaults. Component
+ * theme tokens live in stellar-id-frontend.
  */

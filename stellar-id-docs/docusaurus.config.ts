@@ -1,7 +1,7 @@
 import type { Config } from "@docusaurus/types";
 
-// The `url` is a placeholder — set the real deployment URL in Phase 6
-// when the site is published (see PLAYBOOK.md §8).
+// The `url` is a placeholder: set the real deployment URL when the site is
+// hosted.
 const config: Config = {
   title: "Stellar Identity Suite",
   tagline: "Decentralized identity for Stellar — DIDs, verifiable credentials, and sign-in",

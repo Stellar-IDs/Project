@@ -10,7 +10,8 @@ export default function HomePage() {
         documentation.
       </p>
       <p>
-        <strong>Status:</strong> Phase 0 scaffold — testnet only, v0.x.
+        <strong>Status:</strong> testnet only, v0.x, unaudited. Packages are
+        not on npm yet.
       </p>
       <Link to="docs/intro">Read the docs</Link>
     </main>
