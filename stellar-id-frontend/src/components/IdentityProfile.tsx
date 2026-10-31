@@ -116,6 +116,8 @@ export function IdentityProfileView({
   );
 }
 
+// TODO(wave: frontend-2): editing keys/services (with transaction state and
+// confirmations) builds on this read-only view.
 /**
  * Session-aware profile: shows the session DID unless `did` is given.
  *

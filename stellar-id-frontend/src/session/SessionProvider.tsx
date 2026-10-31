@@ -63,6 +63,8 @@ export interface SessionActions {
 export interface SessionConfig {
   /** Network (defaults to testnet). */
   network?: NetworkConfig;
+  // TODO(wave: frontend-1): a social/passkey login provider plugs in here
+  // as another `Signer` source (wallet-only today).
   /** Build the signer (wallet-owned; called on connect). */
   createSigner: () => Signer | Promise<Signer>;
   /** Challenge domain override (defaults to the page hostname in browsers). */

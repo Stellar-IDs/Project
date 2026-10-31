@@ -5,6 +5,9 @@
  * follows the `data-sid-theme="dark"` attribute (set it on <html> or any
  * ancestor); the light values are the default. All component styles
  * reference these variables — no hardcoded colors in component CSS.
+ *
+ * TODO(wave: frontend-3): theme presets, a provider API and high-contrast
+ * mode build on these tokens.
  */
 :root,
 [data-sid-theme="light"] {
