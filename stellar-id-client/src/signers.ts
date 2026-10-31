@@ -121,6 +121,8 @@ export interface WalletKitLike {
   }>;
 }
 
+// TODO(wave: client-2): additional connectors, auth-entry signing for
+// smart-wallet flows, and wallet capability detection implement `Signer`.
 /**
  * Browser signer that delegates to Stellar Wallets Kit (Freighter, xBull,
  * Albedo, LOBSTR, and others via the kit).

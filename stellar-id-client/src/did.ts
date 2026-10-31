@@ -11,6 +11,8 @@ import { DidParseError } from "./errors.js";
 /** Networks supported by the DID method syntax. */
 export type DidNetwork = "testnet" | "public";
 
+// TODO(wave: client-1): types for methods/networks registered via core-1
+// extend here; keep `method` as the discriminant.
 /** A parsed `did:stellar` identifier. */
 export interface ParsedDid {
   /** Always `"stellar"` for this SDK (single-method MVP). */
