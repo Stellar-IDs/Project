@@ -9,12 +9,12 @@ sidebar_position: 1
 
 ## Packages
 
-| Package | NPM | Description |
+| Repository | npm package | Description |
 |---|---|---|
-| `stellar-id-core` | (contract) | Soroban contract (Rust/WASM) |
-| `stellar-id-client` | `stellar-id-client` | TypeScript SDK |
-| `stellar-id-frontend` | `stellar-id-frontend` | React components + hooks |
-| `stellar-id-docs` | (site) | This documentation |
+| [core](https://github.com/Stellar-IDs/core) | (contract) | Soroban contract (Rust/WASM) |
+| [client](https://github.com/Stellar-IDs/client) | `stellar-id-client` | TypeScript SDK |
+| [frontend](https://github.com/Stellar-IDs/frontend) | `stellar-id-frontend` | React components + hooks |
+| [docs](https://github.com/Stellar-IDs/docs) | (site) | This documentation |
 
 ## Client SDK (`stellar-id-client`)
 

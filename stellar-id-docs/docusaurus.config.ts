@@ -42,7 +42,7 @@ const config: Config = {
       items: [
         { to: "docs/intro", label: "Docs", position: "left" },
         {
-          href: "https://github.com/stellar-id/stellar-id-docs",
+          href: "https://github.com/Stellar-IDs/docs",
           label: "GitHub",
           position: "right",
         },

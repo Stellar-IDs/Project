@@ -5,7 +5,7 @@ sidebar_label: Contract (Soroban)
 sidebar_position: 3
 ---
 
-# Contract API (`stellar-id-core`)
+# Contract API (`core`)
 
 The Soroban contract implements the `did:stellar` DID method on Stellar testnet.
 

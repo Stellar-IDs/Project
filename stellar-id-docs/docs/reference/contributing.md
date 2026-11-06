@@ -8,14 +8,14 @@ sidebar_position: 1
 # Contributing
 
 Thanks for considering a contribution! The suite is four repositories:
-`stellar-id-core` (Soroban contract, Rust), `stellar-id-client`
-(TypeScript SDK), `stellar-id-frontend` (React components) and
-`stellar-id-docs` (this site). Dependencies only flow one way:
+[core](https://github.com/Stellar-IDs/core) (Soroban contract, Rust), [client](https://github.com/Stellar-IDs/client)
+(TypeScript SDK), [frontend](https://github.com/Stellar-IDs/frontend) (React components) and
+[docs](https://github.com/Stellar-IDs/docs) (this site). Dependencies only flow one way:
 core → client → frontend → docs.
 
 ## Local Setup
 
-In a clone of `stellar-id-core` (Rust stable with the `wasm32v1-none`
+In a clone of `Stellar-IDs/core` (Rust stable with the `wasm32v1-none`
 target, stellar CLI 28.x):
 
 ```bash
@@ -25,8 +25,8 @@ cargo test
 stellar contract build
 ```
 
-In a clone of `stellar-id-client`, `stellar-id-frontend` or
-`stellar-id-docs` (Node 20+, pnpm):
+In a clone of `Stellar-IDs/client`, `Stellar-IDs/frontend` or
+`Stellar-IDs/docs` (Node 20+, pnpm):
 
 ```bash
 pnpm install --frozen-lockfile

@@ -12,10 +12,10 @@ A reusable identity layer for Stellar, in four repositories:
 
 | Repository | What it is |
 |---|---|
-| `stellar-id-core` | Soroban contract for the `did:stellar` DID method: DID documents keyed by Stellar address, plus credential-hash anchoring and revocation |
-| `stellar-id-client` | TypeScript SDK: create, resolve and update DIDs; issue, verify and revoke credentials; challenge/response sign-in |
-| `stellar-id-frontend` | React components and hooks: `SessionProvider`, `IdentityLogin`, `IdentityProfile`, `CredentialBadge`, `withAuth` |
-| `stellar-id-docs` | This site |
+| [core](https://github.com/Stellar-IDs/core) | Soroban contract for the `did:stellar` DID method: DID documents keyed by Stellar address, plus credential-hash anchoring and revocation |
+| [client](https://github.com/Stellar-IDs/client) | TypeScript SDK: create, resolve and update DIDs; issue, verify and revoke credentials; challenge/response sign-in |
+| [frontend](https://github.com/Stellar-IDs/frontend) | React components and hooks: `SessionProvider`, `IdentityLogin`, `IdentityProfile`, `CredentialBadge`, `withAuth` |
+| [docs](https://github.com/Stellar-IDs/docs) | This site |
 
 ## What works today
 

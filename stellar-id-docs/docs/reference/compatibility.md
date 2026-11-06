@@ -7,7 +7,7 @@ sidebar_position: 1
 
 # Version Compatibility Matrix
 
-| stellar-id-core | stellar-id-client | stellar-id-frontend | stellar-id-docs | Notes |
+| core | client (`stellar-id-client`) | frontend (`stellar-id-frontend`) | docs | Notes |
 |---|---|---|---|---|
 | 0.1.0 (unreleased) | 0.1.0 (unpublished) | 0.1.0 (unpublished) | 0.1.0 | Testnet contract `CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT` |
 

@@ -25,7 +25,7 @@ npm pkg set type=module
 tarball from the source repo and install that:
 
 ```bash
-# in a checkout of stellar-id-client
+# in a clone of Stellar-IDs/client
 pnpm install && pnpm build && pnpm pack   # → stellar-id-client-0.1.0.tgz
 
 # back in stellar-id-quickstart
