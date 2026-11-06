@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "React components and hooks for the Stellar Identity & Authentication Suite (Phase 0 scaffold)",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Stellar-IDs/frontend.git"
+  },
+  "homepage": "https://github.com/Stellar-IDs/frontend#readme",
+  "bugs": {
+    "url": "https://github.com/Stellar-IDs/frontend/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
