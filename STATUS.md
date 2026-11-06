@@ -27,7 +27,7 @@
 | @docusaurus/core / preset-classic / faster | ^3.10.2 | `future: { v4: true }` → Rspack bundler; see Windows notes |
 | @docusaurus/types, plugin-content-docs, module-type-aliases, tsconfig | ^3.10.2 | direct devDeps (pnpm strictness: @docusaurus/types + plugin-content-docs needed for `tsc`; SidebarsConfig comes from plugin-content-docs `src/*.d.ts`, not the entry) |
 
-Contract build: `stellar_id_core.wasm`, **21089 bytes**, hash `400726ecf5529f2fff8ece0bcf6f7e2411af289f2a4fb5634944f2db51e8e332`, exports `add_service`, `add_verification_method`, `anchor_credential`, `bump_ttl`, `create_did`, `credential_status`, `deactivate_did`, `remove_service`, `remove_verification_method`, `resolve`, `revoke_credential`, `rotate_controller`, `set_relationships`, `verify_credential_proof` (14).
+Contract build: `stellar_id_core.wasm`, **21909 bytes**, hash `6b0d275bf9243cb48e1a663a7f60be8a011c594474e3d50d7234a36f063cde14`, exports `add_service`, `add_verification_method`, `anchor_credential`, `bump_ttl`, `create_did`, `credential_status`, `deactivate_did`, `remove_service`, `remove_verification_method`, `resolve`, `revoke_credential`, `rotate_controller`, `set_relationships`, `verify_credential_proof` (14).
 
 ## Done
 - [x] Environment setup (PLAYBOOK §6 partial): git, node, pnpm, rust + wasm targets, stellar CLI 28.1.0
@@ -114,4 +114,3 @@ Contract build: `stellar_id_core.wasm`, **21089 bytes**, hash `400726ecf5529f2ff
 - superseded: CAFPRFXKOSHELQAB7TRMLEUEYIVYRJIKSZIZ6UU5WXB5DDEUMCBHGAWV (2026-10-31, commit 95b0feb; fee measurements taken here)
 - superseded: testnet contract ID: CBFXX2HCWDIQR45XNPLIMADAKO3N2EXMHJWSGNGNMJQR67TKZ4SCTXXE — wasm hash: 400726ecf5529f2fff8ece0bcf6f7e2411af289f2a4fb5634944f2db51e8e332 — deployed: 2026-10-15 (commit e83df29, tag core-v0.1.0, deployer GA2DO5BZPTPE4OPB46XXZF37VGIJXG7D535QU4GWYJLZYISSXOZKKF4M; smoke DID GD5C6OVUQB56WJWF2PUZOTMLRC7AYAL2NPVAFRLGJ23B54SB5ED3ZP7F created/updated/deactivated, still resolvable)
 
-(End of file - total 92 lines)
