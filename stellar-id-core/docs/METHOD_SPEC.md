@@ -4,7 +4,7 @@
 
 - **Status:** Phase 1 draft (v0.x) - under active development
 - **Method:** `did:stellar`
-- **Canonical repository:** [stellar-identity-suite](https://github.com/stellar-id/stellar-identity-suite) (monorepo, split into stellar-id-core, stellar-id-client, stellar-id-frontend, stellar-id-docs)
+- **Canonical repository:** [Stellar-IDs/Project](https://github.com/Stellar-IDs/Project) (monorepo, split into the Stellar-IDs/core, client, frontend and docs repositories)
 - **Reference implementation:** `stellar-id-core` (Soroban contract), `stellar-id-client` (TypeScript SDK), `stellar-id-frontend` (React components)
 - **Networks:** `testnet` (Phase 1–3), `public` (mainnet, explicit non-goal for v1)
 - **Conforms to:** [W3C DID Core 1.1](https://www.w3.org/TR/did-1.1/) (targeting)
@@ -19,7 +19,7 @@
 |---|---|---|
 | **Method name** | `did:stellar` | `did:stellar` (same) |
 | **Spec status** | Draft v0.1 (2026-07-03), public spec candidate | Phase 1 draft, under active development |
-| **Canonical repo** | [ACTA-Team/contracts-acta](https://github.com/ACTA-Team/contracts-acta) | [stellar-id/stellar-identity-suite](https://github.com/stellar-id/stellar-identity-suite) |
+| **Canonical repo** | [ACTA-Team/contracts-acta](https://github.com/ACTA-Team/contracts-acta) | [Stellar-IDs/core](https://github.com/Stellar-IDs/core) |
 | **Reference impl** | `@acta-team/did-stellar` (TS SDK), `did.acta.build` (HTTP resolver) | `stellar-id-core` (Soroban), `stellar-id-client` (TS SDK), `stellar-id-frontend` (React) |
 | **Networks** | `mainnet`, `testnet` | `testnet` only (v1), `public` non-goal |
 | **DID syntax** | `did:stellar:<network>:<base32-128bit>` | `did:stellar:<network>:<strkey-address>` |
