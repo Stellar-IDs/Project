@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Split the monorepo into four standalone repos (PLAYBOOK §10).
+# Split the monorepo into four standalone repos (PLAYBOOK §10): core, client,
+# frontend and docs (folder stellar-id-<x> becomes repo <org>/<x>).
 #
 # Usage (from the monorepo root, Git Bash on Windows):
 #   ./scripts/split.sh [OUT_DIR] [GITHUB_ORG]
@@ -39,9 +40,10 @@ settings_block() {
 
 pending=()
 for r in "${REPOS[@]}"; do
-  git clone --quiet --no-local "$SRC" "$OUT/$r"
+  d="${r#stellar-id-}"   # repo name drops the prefix: the org already says Stellar-IDs
+  git clone --quiet --no-local "$SRC" "$OUT/$d"
   (
-    cd "$OUT/$r"
+    cd "$OUT/$d"
     git filter-repo --quiet --subdirectory-filter "$r"
     git branch -M main
     # filter-repo moves every tag onto this history; keep only this
@@ -52,13 +54,13 @@ for r in "${REPOS[@]}"; do
     git config user.name "$(git -C "$SRC" config user.name)"
     git config user.email "$(git -C "$SRC" config user.email)"
     if [ -n "$ORG" ]; then
-      git remote add origin "git@github.com:${ORG}/${r}.git"
+      git remote add origin "https://github.com/${ORG}/${d}.git"
     fi
   )
 
-  if [ -f "$OUT/$r/package.json" ]; then
+  if [ -f "$OUT/$d/package.json" ]; then
     (
-      cd "$OUT/$r"
+      cd "$OUT/$d"
       {
         if [ "$r" = "stellar-id-frontend" ]; then
           printf 'packages:\n  - "demo"\n\n'
@@ -73,13 +75,13 @@ for r in "${REPOS[@]}"; do
       git add -A
       git commit --quiet -m "chore: standalone pnpm workspace config after split"
     )
-    if (cd "$OUT/$r" && "$PNPM" install >/dev/null 2>&1); then
-      (cd "$OUT/$r" && git add pnpm-lock.yaml && git commit --quiet -m "chore: add standalone lockfile")
+    if (cd "$OUT/$d" && "$PNPM" install >/dev/null 2>&1); then
+      (cd "$OUT/$d" && git add pnpm-lock.yaml && git commit --quiet -m "chore: add standalone lockfile")
     else
       pending+=("$r: 'pnpm install' failed (expected for the frontend until stellar-id-client is on npm)")
     fi
   fi
-  echo "prepared $OUT/$r"
+  echo "prepared $OUT/$d"
 done
 
 echo
