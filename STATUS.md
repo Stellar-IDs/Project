@@ -101,6 +101,8 @@ Contract build: `stellar_id_core.wasm`, **21909 bytes**, hash `6b0d275bf9243cb48
 - 2026-10-31: Changesets deferred to after the split (monorepo CLI would treat the workspace as one project). Hand-written CHANGELOGs in each package for now.
 - 2026-10-31: another agent session on this machine replaced the global pnpm with 9.15.9. This session used a private pnpm 12.11.2 from its scratchpad instead of touching the global install. Restore pnpm 12 globally when that session is done (`packageManager` is pnpm@12.11.2).
 
+- 2026-11-06: ran `scripts/split.sh` into `C:/Users/Best/stellar-id-split` (git-filter-repo 2.47.0 via pip, private pnpm 12.11.2). Verified standalone in the split clones: core (fmt, clippy, 59 tests, wasm build), client and docs (install --frozen-lockfile, lint, typecheck, test, build). The frontend split has no lockfile until stellar-id-client is on npm. Split remotes point at https://github.com/Stellar-IDs/<repo>.git, but the four repos are NOT created: `gh repo create` was denied by the permission classifier (public surface), so the human must create them or allow it. npm is not logged in here (`npm whoami` → ENEEDAUTH).
+
 ## Blockers / open questions
 - npm publish of `stellar-id-client` (human's npm account) blocks the frontend split and real `npm install` docs.
 - Windows dev machines with multi-user profiles may hit the SWC native-cache ACL rejection (`ERR_SWC_NATIVE_CACHE`): fix is a locked-down `SWC_NATIVE_BINDING_CACHE` dir (documented in the docs README). Node 22 (playbook LTS) untested locally — system has Node 24; CI covers 20/22.
