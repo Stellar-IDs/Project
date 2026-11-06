@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "TypeScript SDK for the Stellar Identity & Authentication Suite (did:stellar DIDs, credentials, challenges; testnet)",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Stellar-IDs/client.git"
+  },
+  "homepage": "https://github.com/Stellar-IDs/client#readme",
+  "bugs": {
+    "url": "https://github.com/Stellar-IDs/client/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
