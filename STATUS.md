@@ -1,8 +1,8 @@
 # STATUS
 
-**Updated:** 2026-10-31
-**Current phase:** 8 — Split, publish, seed issues (local prep done; every remaining step needs the human's accounts or sign-off)
-**Current task:** All four packages pass their verify commands as of this update: core (59 tests, wasm 21909 B), client (47 pass + 1 integration test, which passes live on testnet), frontend (26 unit tests; demo Playwright e2e 2/2 incl. full testnet flow), docs (3 tests, link-checked build). Split dry run: core, client and docs verify standalone. Gates 1b/3/4/5/7 human sign-offs still deferred.
+**Updated:** 2026-11-07
+**Current phase:** 8 — Split, publish, seed issues (`stellar-id-client@0.1.0` is on npm; every remaining step needs the human's accounts or sign-off)
+**Current task:** All four split repos verify standalone. Frontend checked 2026-11-07 in `C:/Users/Best/stellar-id-split2/frontend` against the published client with pnpm 12.11.2: frozen install, lint, typecheck, 26 tests, build, demo build. Monorepo results from 2026-10-31: core (59 tests, wasm 21909 B), client (47 pass + 1 integration test, which passes live on testnet), frontend (26 unit tests; demo Playwright e2e 2/2 incl. full testnet flow), docs (3 tests, link-checked build). Gates 1b/3/4/5/7 human sign-offs still deferred.
 
 ## Environment / pinned versions
 
@@ -53,18 +53,21 @@ Contract build: `stellar_id_core.wasm`, **21909 bytes**, hash `6b0d275bf9243cb48
 - [x] Phase 5 leftovers: demo registers the DID before sign-in (new wallets couldn't sign in before), Playwright e2e (offline + full testnet flow) green
 - [x] Phase 6 acceptance substance: Node quick start rewritten and run verbatim from a clean folder against testnet with a packed client tarball (the old one was broken: key-less DID, then issued with key-1)
 - [x] Phase 8 local prep: `scripts/split.sh` (non-destructive) dry-run verified; package-level `.gitignore`s; `TODO(wave: …)` markers for all 16 issues; issue drafts in each package's `.github/wave-issues/`
+- [x] Phase 8 publishing so far: repos Stellar-IDs/core, client, frontend, docs created; core, client and docs pushed; core Wave issues #1–#4 seeded; `stellar-id-client@0.1.0` on npm; frontend split lockfile committed and verified standalone (not pushed)
 
 ## In progress
 - (nothing)
 
 ## Next (needs a human or a decision)
-1. **Publish `stellar-id-client` to npm** (name is unclaimed: registry 404). Blocks the frontend split (its `workspace:` dep becomes `^0.1.0`) and the docs' install commands. Then publish `stellar-id-frontend`.
-2. **Split:** create four empty GitHub repos, then `./scripts/split.sh ../stellar-id-split <org>` (needs git-filter-repo and pnpm 12 on PATH). Push manually after review. Retag `core-v0.1.0`? It points at the first deployment (e83df29), not the current contract; consider `core-v0.1.1` at HEAD.
-3. **Seed issues** from `.github/wave-issues/*.md` with `gh issue create --body-file`, staggered per §11 program limits.
-4. **Real-wallet test:** the demo isn't wired to `WalletsKitSigner`; no extension wallet has been tried (client-2 Wave issue covers it).
-5. **Host the demo and docs** (Vercel or similar). Not done: needs the human's account.
-6. Not done (Phase 7 extras): `cargo deny`, Soroban Guard, fresh-session adversarial pass, fuzz tests, axe in Storybook, Changesets (set up per repo after the split; inside the monorepo the CLI treats the whole workspace as one project).
-7. Phase 1 Gate 1b: human reads the whole contract, reruns tests, signs off the public interface in STATUS.md ("Interface frozen at commit abc123"). Open review items for the gate: (a) `create_did` returns `InvalidInput` for limit violations while new `add_*` functions return `LimitExceeded` — spec §3.3 says `LimitExceeded`; unify? (b) rotation moves the record (old key 404s, old credentials orphaned) — acceptable? (c) `revoke_credential` allowed after deactivation (safety action) — acceptable?
+1. **Force-push the rewritten monorepo** (human): `git push --force-with-lease=main:ce0bff7a112605fec4a95d45dd4876a6ce03b726 origin main`. Checked 2026-11-07: remote `main` (ce0bff7) has the same tree as local 1bed92f and local adds 10 newer commits, so nothing on GitHub is lost. The remote tag `core-v0.1.0` already points at the rewritten commit c616bca: no tag push needed.
+2. **Push, then npm-publish the frontend** from `C:/Users/Best/stellar-id-split2/frontend`: `git push -u origin main`, then `npm publish --access public`. Never publish from the monorepo folder: its `package.json` has `"stellar-id-client": "workspace:^0.1.0"`, which `npm publish` ships verbatim (uninstallable). The split clone already has `^0.1.0`.
+3. **Retag core?** `core-v0.1.0` points at the first deployment, not the current contract; consider `core-v0.1.1` at HEAD.
+4. **Seed the remaining Wave issues** (client, frontend, docs) from each package's `.github/wave-issues/*.md` with `gh issue create --body-file`, staggered per §11 program limits. Core #1–#4 are seeded; frontend issues need the frontend repo pushed first.
+5. **Pin pnpm in the split repos?** They have no `packageManager` field, so corepack's default (11.28.9 on this machine) runs there instead of 12.11.2. Adding `"packageManager": "pnpm@12.11.2"` to each JS package would fix it; CI already pins pnpm 12.
+6. **Real-wallet test:** the demo isn't wired to `WalletsKitSigner`; no extension wallet has been tried (client-2 Wave issue covers it).
+7. **Host the demo and docs** (Vercel or similar). Not done: needs the human's account.
+8. Not done (Phase 7 extras): `cargo deny`, Soroban Guard, fresh-session adversarial pass, fuzz tests, axe in Storybook, Changesets (set up per repo after the split; inside the monorepo the CLI treats the whole workspace as one project).
+9. Phase 1 Gate 1b: human reads the whole contract, reruns tests, signs off the public interface in STATUS.md ("Interface frozen at commit abc123"). Open review items for the gate: (a) `create_did` returns `InvalidInput` for limit violations while new `add_*` functions return `LimitExceeded` — spec §3.3 says `LimitExceeded`; unify? (b) rotation moves the record (old key 404s, old credentials orphaned) — acceptable? (c) `revoke_credential` allowed after deactivation (safety action) — acceptable?
    Also decide SECURITY_REVIEW F-2 (credentials survive controller rotation) and F-4 (no credential TTL bump).
 
 ## Decisions (append-only, dated)
@@ -107,8 +110,13 @@ Contract build: `stellar_id_core.wasm`, **21909 bytes**, hash `6b0d275bf9243cb48
 
 - 2026-11-07: per the user, repos drop the `stellar-id-` prefix (org is already Stellar-IDs): renamed to Stellar-IDs/core, client, frontend, docs (npm names stay `stellar-id-client` / `stellar-id-frontend`; monorepo folders unchanged; `scripts/split.sh` now names repos by the short name). All four READMEs and the root README rewritten; docs content links to the new repo names. History was rewritten with git-filter-repo (backup bundle kept in the session scratchpad): every commit is authored by VeronicDev, Claude co-author trailers removed, `Co-authored-by: Stephaniepez21-art` added to all commits (the user did not say which commits belong to whom, so the split is uniform). Re-split into `C:/Users/Best/stellar-id-split2`; core, client and docs verified there and force-pushed. Frontend still not pushed (needs client on npm). The monorepo's local `main` has the rewritten history, but force-pushing it to Stellar-IDs/Project was denied, so the remote monorepo still has the old history with the Claude trailers until the user pushes it (`git push --force-with-lease origin main --tags`).
 
+- 2026-11-07: `stellar-id-client@0.1.0` is on npm, published 11:29 UTC from the `veronicdev` account. A later `npm publish` failed only because 0.1.0 already existed. The published tarball is byte-identical to the build in `stellar-id-split2/client`, whose tree equals the monorepo's `stellar-id-client` (4093486). The only code difference from the monorepo's Oct-31 `dist/` is a bundler path comment for base-x. npm also lists a `0.0.0-stage` version ("Temporary package placeholder for staged publishing", 2 files) that `^0.1.0` never selects; the user may `npm deprecate` it.
+- 2026-11-07: the user's `git push --force-with-lease origin main --tags` was rejected as "stale info": git-filter-repo deletes remote-tracking refs, so the lease expected `main` not to exist on the remote. Fetched `origin/main` (ce0bff7, same tree as local 1bed92f). Push with an explicit lease (Next 1).
+- 2026-11-07: frontend split finished locally. `pnpm install` generated the lockfile against the published client and appended `stellar-id-client@0.1.0` to `minimumReleaseAgeExclude` (release-age guard; the package is under a day old). Fresh resolution picked newer in-range versions than the monorepo lockfile (storybook 10.6.6, eslint 10.14.0, typescript-eslint 8.72.1, vitest 5.1.0, react 19.3.1, stellar-wallets-kit 2.8.0 via the client). Committed as `chore: add standalone lockfile` (c449e0b) in the split clone; not pushed.
+- 2026-11-07: the global `pnpm` is now a corepack shim (`~/.corepack-bin`): 12.11.2 inside the monorepo (root `packageManager`), but corepack's default 11.28.9 in the split clones. The frontend lockfile was generated by 11.28.9 (same lockfileVersion 9.0), then checked with `corepack pnpm@12.11.2 install --frozen-lockfile` and the full verify, as CI (pnpm 12) runs it.
+
 ## Blockers / open questions
-- npm publish of `stellar-id-client` (human's npm account) blocks the frontend split and real `npm install` docs.
+- npm publish of `stellar-id-frontend` (human's npm account) is pending. Until then the docs' React quick start (`pnpm add stellar-id-frontend ...`) fails. The client is on npm.
 - Windows dev machines with multi-user profiles may hit the SWC native-cache ACL rejection (`ERR_SWC_NATIVE_CACHE`): fix is a locked-down `SWC_NATIVE_BINDING_CACHE` dir (documented in the docs README). Node 22 (playbook LTS) untested locally — system has Node 24; CI covers 20/22.
 - After the split, the client repo has no `sync-bindings.sh` (it lives in the monorepo `scripts/`). Regenerate with `stellar contract bindings typescript --network testnet --contract-id <id> --output-dir <tmp>` and copy `src/index.ts` to `src/generated/index.ts`.
 
