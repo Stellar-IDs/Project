@@ -1,8 +1,8 @@
 # STATUS
 
-**Updated:** 2026-11-07
-**Current phase:** 8 — Split, publish, seed issues (`stellar-id-client@0.1.0` is on npm; every remaining step needs the human's accounts or sign-off)
-**Current task:** All four split repos verify standalone. Frontend checked 2026-11-07 in `C:/Users/Best/stellar-id-split2/frontend` against the published client with pnpm 12.11.2: frozen install, lint, typecheck, 26 tests, build, demo build. Monorepo results from 2026-10-31: core (59 tests, wasm 21909 B), client (47 pass + 1 integration test, which passes live on testnet), frontend (26 unit tests; demo Playwright e2e 2/2 incl. full testnet flow), docs (3 tests, link-checked build). Gates 1b/3/4/5/7 human sign-offs still deferred.
+**Updated:** 2026-11-08
+**Current phase:** 8 — Split, publish, seed issues (`stellar-id-client@0.1.0` is on npm; the `stellar-id-frontend` publish waits on the human's npm login)
+**Current task:** CI is green on all five repos as of 2026-11-08 (Stellar-IDs/core, client, frontend, docs, and the monorepo, whose first green run this is; see the 2026-11-08 decisions). Frontend checked 2026-11-07 in `C:/Users/Best/stellar-id-split2/frontend` against the published client with pnpm 12.11.2: frozen install, lint, typecheck, 26 tests, build, demo build. Core re-verified 2026-11-08: fmt, clippy, 59 tests, wasm 21909 B. Monorepo results from 2026-10-31: client (47 pass + 1 integration test, which passes live on testnet), frontend (26 unit tests; demo Playwright e2e 2/2 incl. full testnet flow), docs (3 tests, link-checked build). Gates 1b/3/4/5/7 human sign-offs still deferred.
 
 ## Environment / pinned versions
 
@@ -10,10 +10,10 @@
 |---|---|---|
 | rustc / cargo | 1.99.0 (stable, x86_64-pc-windows-msvc) | installed via rustup this session; `rustfmt`+`clippy` components added explicitly (minimal profile omits them) |
 | wasm targets | wasm32-unknown-unknown, wasm32v1-none | SDK 28 builds for **wasm32v1-none** (new target name); both installed |
-| stellar CLI | 28.1.0 | `stellar` (soroban-cli), `~/bin/stellar-cli`, on user PATH |
+| stellar CLI | 28.1.0 (built the deployed wasm) | CLI 30.0.1 in `~/.cargo/bin` (installed 2026-11-04, origin not recorded) now comes first on PATH; CI installs the latest release. SDK 28 builds and tests with it (see 2026-11-08) |
 | soroban-sdk | 28.0.0 (exact, per Cargo.lock) | `soroban-sdk = "28"` in workspace deps; major matches CLI 28.1.0 (no CLI v29 exists; SDK 29.0.1 must not be mixed in) |
 | node | v24.18.0 | system install (playbook says 20/22 LTS; CI uses 20/22 — see Windows notes below) |
-| pnpm | 12.11.2 | global install in `~/npm-global` (`corepack enable` fails: Program Files is read-only); `packageManager` field + CI use pnpm 12 |
+| pnpm | 12.11.2 | now a corepack shim in `~/.corepack-bin`: 12.11.2 inside the monorepo (`packageManager`), corepack's default 11.28.9 elsewhere (use `corepack pnpm@12.11.2` in the split clones); CI uses pnpm 12 |
 | typescript | ^5.9.3 (resolved 5.9.3) | TS 6/7 unusable: typescript-eslint 8.71.2 peers require `typescript >=4.8.4 <6.1.0` |
 | typescript-eslint (meta-package) | ^8.71.2 | eslint flat configs import from `typescript-eslint`; the separate parser/plugin deps were dropped |
 | tsup | ^8.5.1 | |
@@ -27,7 +27,7 @@
 | @docusaurus/core / preset-classic / faster | ^3.10.2 | `future: { v4: true }` → Rspack bundler; see Windows notes |
 | @docusaurus/types, plugin-content-docs, module-type-aliases, tsconfig | ^3.10.2 | direct devDeps (pnpm strictness: @docusaurus/types + plugin-content-docs needed for `tsc`; SidebarsConfig comes from plugin-content-docs `src/*.d.ts`, not the entry) |
 
-Contract build: `stellar_id_core.wasm`, **21909 bytes**, hash `6b0d275bf9243cb48e1a663a7f60be8a011c594474e3d50d7234a36f063cde14`, exports `add_service`, `add_verification_method`, `anchor_credential`, `bump_ttl`, `create_did`, `credential_status`, `deactivate_did`, `remove_service`, `remove_verification_method`, `resolve`, `revoke_credential`, `rotate_controller`, `set_relationships`, `verify_credential_proof` (14).
+Contract build: `stellar_id_core.wasm`, **21909 bytes**, hash `6b0d275bf9243cb48e1a663a7f60be8a011c594474e3d50d7234a36f063cde14`, exports `add_service`, `add_verification_method`, `anchor_credential`, `bump_ttl`, `create_did`, `credential_status`, `deactivate_did`, `remove_service`, `remove_verification_method`, `resolve`, `revoke_credential`, `rotate_controller`, `set_relationships`, `verify_credential_proof` (14). Built with CLI 30.0.1 the hash is `9768c2b6c08666429ee61701edf71f9f0f9f0de0ae9cd87731a7c3d83cef9025` (same size): only the `cliver` meta entry differs (`stellar contract info meta`; `rsver` 1.99.0 and `rssdkver` 28.0.0#48d50671 match the deployed contract).
 
 ## Done
 - [x] Environment setup (PLAYBOOK §6 partial): git, node, pnpm, rust + wasm targets, stellar CLI 28.1.0
@@ -53,17 +53,17 @@ Contract build: `stellar_id_core.wasm`, **21909 bytes**, hash `6b0d275bf9243cb48
 - [x] Phase 5 leftovers: demo registers the DID before sign-in (new wallets couldn't sign in before), Playwright e2e (offline + full testnet flow) green
 - [x] Phase 6 acceptance substance: Node quick start rewritten and run verbatim from a clean folder against testnet with a packed client tarball (the old one was broken: key-less DID, then issued with key-1)
 - [x] Phase 8 local prep: `scripts/split.sh` (non-destructive) dry-run verified; package-level `.gitignore`s; `TODO(wave: …)` markers for all 16 issues; issue drafts in each package's `.github/wave-issues/`
-- [x] Phase 8 publishing so far: repos Stellar-IDs/core, client, frontend, docs created; core, client and docs pushed; core Wave issues #1–#4 seeded; `stellar-id-client@0.1.0` on npm; frontend split lockfile committed and verified standalone (not pushed)
+- [x] Phase 8 publishing so far: repos Stellar-IDs/core, client, frontend, docs created and all four pushed; rewritten monorepo force-pushed; core Wave issues #1–#4 seeded; `stellar-id-client@0.1.0` on npm; CI green on all five repos (2026-11-08)
 
 ## In progress
 - (nothing)
 
 ## Next (needs a human or a decision)
-1. **Force-push the rewritten monorepo** (human): `git push --force-with-lease=main:ce0bff7a112605fec4a95d45dd4876a6ce03b726 origin main`. Checked 2026-11-07: remote `main` (ce0bff7) has the same tree as local 1bed92f and local adds 10 newer commits, so nothing on GitHub is lost. The remote tag `core-v0.1.0` already points at the rewritten commit c616bca: no tag push needed.
-2. **Push, then npm-publish the frontend** from `C:/Users/Best/stellar-id-split2/frontend`: `git push -u origin main`, then `npm publish --access public`. Never publish from the monorepo folder: its `package.json` has `"stellar-id-client": "workspace:^0.1.0"`, which `npm publish` ships verbatim (uninstallable). The split clone already has `^0.1.0`.
-3. **Retag core?** `core-v0.1.0` points at the first deployment, not the current contract; consider `core-v0.1.1` at HEAD.
-4. **Seed the remaining Wave issues** (client, frontend, docs) from each package's `.github/wave-issues/*.md` with `gh issue create --body-file`, staggered per §11 program limits. Core #1–#4 are seeded; frontend issues need the frontend repo pushed first.
-5. **Pin pnpm in the split repos?** They have no `packageManager` field, so corepack's default (11.28.9 on this machine) runs there instead of 12.11.2. Adding `"packageManager": "pnpm@12.11.2"` to each JS package would fix it; CI already pins pnpm 12.
+1. **npm-publish the frontend** (human): `npm login` (the session had expired: `npm whoami` → 401, which is why `npm publish` returned 404 on 2026-11-08), then `npm publish --access public` in `C:/Users/Best/stellar-id-split2/frontend`. Never publish from the monorepo folder: its `package.json` has `"stellar-id-client": "workspace:^0.1.0"`, which `npm publish` ships verbatim (uninstallable). The split clone has `^0.1.0`.
+2. **Retag core?** `core-v0.1.0` points at the first deployment, not the current contract; consider `core-v0.1.1` at HEAD.
+3. **Seed the remaining Wave issues** (client, frontend, docs) from each package's `.github/wave-issues/*.md` with `gh issue create --body-file`, staggered per §11 program limits. Core #1–#4 are seeded.
+4. **Pin pnpm in the split repos?** They have no `packageManager` field, so corepack's default (11.28.9 on this machine) runs there instead of 12.11.2. Adding `"packageManager": "pnpm@12.11.2"` to each JS package fixes that, but then drop `version: 12` from that repo's `pnpm/action-setup` step: the action refuses two versions (this kept the monorepo CI red until 2026-11-08).
+5. **Pin the stellar CLI in CI?** Both core workflows install the latest release (30.0.1 today), which mixes CLI 30 with SDK 28 (the 2026-10-13 decision says not to mix majors) and makes CI-built wasm differ from the deployed build in its `cliver` meta.
 6. **Real-wallet test:** the demo isn't wired to `WalletsKitSigner`; no extension wallet has been tried (client-2 Wave issue covers it).
 7. **Host the demo and docs** (Vercel or similar). Not done: needs the human's account.
 8. Not done (Phase 7 extras): `cargo deny`, Soroban Guard, fresh-session adversarial pass, fuzz tests, axe in Storybook, Changesets (set up per repo after the split; inside the monorepo the CLI treats the whole workspace as one project).
@@ -115,8 +115,12 @@ Contract build: `stellar_id_core.wasm`, **21909 bytes**, hash `6b0d275bf9243cb48
 - 2026-11-07: frontend split finished locally. `pnpm install` generated the lockfile against the published client and appended `stellar-id-client@0.1.0` to `minimumReleaseAgeExclude` (release-age guard; the package is under a day old). Fresh resolution picked newer in-range versions than the monorepo lockfile (storybook 10.6.6, eslint 10.14.0, typescript-eslint 8.72.1, vitest 5.1.0, react 19.3.1, stellar-wallets-kit 2.8.0 via the client). Committed as `chore: add standalone lockfile` (c449e0b) in the split clone; not pushed.
 - 2026-11-07: the global `pnpm` is now a corepack shim (`~/.corepack-bin`): 12.11.2 inside the monorepo (root `packageManager`), but corepack's default 11.28.9 in the split clones. The frontend lockfile was generated by 11.28.9 (same lockfileVersion 9.0), then checked with `corepack pnpm@12.11.2 install --frozen-lockfile` and the full verify, as CI (pnpm 12) runs it.
 
+- 2026-11-08: the user force-pushed the rewritten monorepo and pushed the frontend split (c449e0b, CI green). `npm publish` of the frontend then returned 404 because the npm session had expired (`npm whoami` → 401); the name `stellar-id-frontend` is still free.
+- 2026-11-08: CI had been red without anyone noticing. (1) Core job (monorepo and Stellar-IDs/core): `cargo audit` failed on RUSTSEC-2026-0387, which `docs/SECURITY_REVIEW.md` already accepts as host-only. `stellar-id-core/.cargo/audit.toml` now ignores that one ID (checked: `cargo audit` passes with it and fails without it). (2) The core `build wasm` step had never run, because audit failed first; it then failed because CI installed `wasm32-unknown-unknown`, not `wasm32v1-none`. Fixed in both workflows. (3) Every monorepo JS job had failed at `pnpm/action-setup` since 2026-10-24: `version: 12` plus the root `packageManager` is two versions, which the action refuses. Dropped `version:`; the frontend job now also builds the client first (workspace link; a fresh checkout has no client `dist/`). Core commits were made in the monorepo and replayed into Stellar-IDs/core with `git format-patch --relative=stellar-id-core` + `git am` (trees verified identical). Result: all five repos green.
+- 2026-11-08: this machine's `stellar` is CLI 30.0.1 (`~/.cargo/bin`, installed 2026-11-04, origin not recorded), not the 28.1.0 that built the deployed wasm. SDK 28 still builds and tests with it, locally and in CI (which installs the latest release). A fresh build hashes `9768c2b6…` instead of `6b0d275b…` at the same 21909 bytes; `stellar contract info meta` shows only `cliver` differs from the deployed contract. Pinning is Next 5.
+
 ## Blockers / open questions
-- npm publish of `stellar-id-frontend` (human's npm account) is pending. Until then the docs' React quick start (`pnpm add stellar-id-frontend ...`) fails. The client is on npm.
+- npm publish of `stellar-id-frontend` waits on the human's `npm login` (Next 1). Until then the docs' React quick start (`pnpm add stellar-id-frontend ...`) fails. The client is on npm.
 - Windows dev machines with multi-user profiles may hit the SWC native-cache ACL rejection (`ERR_SWC_NATIVE_CACHE`): fix is a locked-down `SWC_NATIVE_BINDING_CACHE` dir (documented in the docs README). Node 22 (playbook LTS) untested locally — system has Node 24; CI covers 20/22.
 - After the split, the client repo has no `sync-bindings.sh` (it lives in the monorepo `scripts/`). Regenerate with `stellar contract bindings typescript --network testnet --contract-id <id> --output-dir <tmp>` and copy `src/index.ts` to `src/generated/index.ts`.
 
