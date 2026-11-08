@@ -93,9 +93,9 @@ jobs:
         working-directory: stellar-id-client
     steps:
       - uses: actions/checkout@v4
+      # pnpm version comes from `packageManager` in the root package.json;
+      # also passing `version:` makes pnpm/action-setup fail.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 12
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
@@ -115,14 +115,18 @@ jobs:
         working-directory: stellar-id-frontend
     steps:
       - uses: actions/checkout@v4
+      # pnpm version comes from `packageManager` in the root package.json;
+      # also passing `version:` makes pnpm/action-setup fail.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 12
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The frontend resolves stellar-id-client through a workspace link, so
+      # the client's dist/ must exist before lint, typecheck and tests.
+      - name: build stellar-id-client (workspace dependency)
+        run: pnpm --filter stellar-id-client run build
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
@@ -139,9 +143,9 @@ jobs:
         working-directory: stellar-id-docs
     steps:
       - uses: actions/checkout@v4
+      # pnpm version comes from `packageManager` in the root package.json;
+      # also passing `version:` makes pnpm/action-setup fail.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 12
       - uses: actions/setup-node@v4
         with:
           node-version: 22
