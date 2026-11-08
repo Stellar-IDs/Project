@@ -1,0 +1,8 @@
+# cargo-audit configuration (read from .cargo/audit.toml in this directory).
+[advisories]
+# RUSTSEC-2026-0387: crypto-bigint 0.5.5, timing variability. Host-only: it
+# enters through soroban-env-host (the native host soroban-sdk uses for tests),
+# not the contract wasm; `cargo tree -i crypto-bigint@0.5.5 -e normal,build
+# --target wasm32v1-none` prints nothing. Accepted in docs/SECURITY_REVIEW.md.
+# Remove this entry once soroban-sdk ships a host on crypto-bigint >= 0.7.6.
+ignore = ["RUSTSEC-2026-0387"]

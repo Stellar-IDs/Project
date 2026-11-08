@@ -60,3 +60,7 @@ Earlier deployments are superseded (see `deployments/testnet.json`).
 --target wasm32v1-none` shows it is not in the contract wasm. **Accepted**
 until soroban-sdk ships a host on the patched line. `paste` is flagged as
 unmaintained (warning only, proc-macro, build-time).
+
+CI's `cargo audit` step skips RUSTSEC-2026-0387 through `.cargo/audit.toml`
+(that one ID only; any other advisory still fails the build). Remove the entry
+when soroban-sdk moves to the patched line.
