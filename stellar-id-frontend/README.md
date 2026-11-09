@@ -10,7 +10,7 @@
 ![Status](https://img.shields.io/badge/status-v0.x%20·%20not%20on%20npm%20yet-yellow)
 [![Demo](https://github.com/Stellar-IDs/frontend/actions/workflows/deploy.yml/badge.svg)](https://stellar-ids.github.io/frontend/)
 
-**[Live demo](https://stellar-ids.github.io/frontend/)** · [Docs site](https://stellar-ids.github.io/docs/) · [Core contract](https://github.com/Stellar-IDs/core) · [Client SDK](https://github.com/Stellar-IDs/client) · [Docs repo](https://github.com/Stellar-IDs/docs) · [Changelog](CHANGELOG.md)
+**[Live demo](https://stellar-ids.github.io/frontend/)** · [Docs site](https://stellar-ids.github.io/docs/) · [Core contract](https://github.com/Stellar-IDs/core) · [Client SDK](https://github.com/Stellar-IDs/client) · [Docs repo](https://github.com/Stellar-IDs/docs) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
 
 </div>
 
