@@ -288,6 +288,7 @@ Found a vulnerability? Follow [SECURITY.md](SECURITY.md) — please do not open 
 | Wasm hash | `6b0d275bf9243cb48e1a663a7f60be8a011c594474e3d50d7234a36f063cde14` |
 | Wasm size | 21,909 bytes |
 | Toolchain | stellar CLI 28.1.0 · `soroban-sdk` 28.0.0 |
+| Release | [`v0.1.1`](https://github.com/Stellar-IDs/core/releases/tag/v0.1.1) |
 
 The machine-readable record, including superseded deployments, is
 [`deployments/testnet.json`](deployments/testnet.json). Testnet resets wipe contracts, so IDs change over time.

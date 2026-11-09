@@ -3,10 +3,16 @@
 All notable changes to `stellar-id-core`. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [SemVer](https://semver.org/). Testnet only.
 
-## [Unreleased]
+## [0.1.1] - 2026-11-09
 
-Deployed to testnet as `CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT`.
-No public function signatures changed since 0.1.0.
+Tag `v0.1.1`. Deployed to testnet as `CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT`
+(wasm hash `6b0d275b…cde14`, built with stellar CLI 28.1.0). No public function signatures changed
+since 0.1.0.
+
+### Changed
+- CI installs stellar CLI 28.1.0, the version that built the deployed wasm, instead of the latest release.
+- `cargo audit` in CI skips RUSTSEC-2026-0387, accepted in `docs/SECURITY_REVIEW.md` as host-only;
+  CI installs the `wasm32v1-none` target the wasm build needs.
 
 ### Fixed
 - `create_did` now bounds the service `kind` length (128 bytes), like `add_service` (SECURITY_REVIEW F-1).
@@ -23,7 +29,7 @@ No public function signatures changed since 0.1.0.
 
 ## [0.1.0] - 2026-10-15
 
-Tag `core-v0.1.0`. Testnet deployment `CBFXX2HC…TXXE` (superseded).
+Tag `v0.1.0` (`core-v0.1.0` before the split). Testnet deployment `CBFXX2HC…TXXE` (superseded).
 
 ### Added
 - `did:stellar` DID lifecycle: `create_did`, `resolve`, `add/remove_verification_method`,
