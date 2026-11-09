@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Documentation site for the Stellar Identity & Authentication Suite (Docusaurus, Phase 0 scaffold)",
   "license": "Apache-2.0",
+  "packageManager": "pnpm@12.11.2",
   "scripts": {
     "dev": "docusaurus start",
     "build": "docusaurus build",
