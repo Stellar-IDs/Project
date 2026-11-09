@@ -8,14 +8,21 @@
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 ![Network](https://img.shields.io/badge/network-testnet-orange)
 ![Status](https://img.shields.io/badge/status-v0.x%20·%20not%20on%20npm%20yet-yellow)
+[![Demo](https://github.com/Stellar-IDs/frontend/actions/workflows/deploy.yml/badge.svg)](https://stellar-ids.github.io/frontend/)
 
-[Core contract](https://github.com/Stellar-IDs/core) · [Client SDK](https://github.com/Stellar-IDs/client) · [Docs](https://github.com/Stellar-IDs/docs) · [Changelog](CHANGELOG.md)
+**[Live demo](https://stellar-ids.github.io/frontend/)** · [Docs site](https://stellar-ids.github.io/docs/) · [Core contract](https://github.com/Stellar-IDs/core) · [Client SDK](https://github.com/Stellar-IDs/client) · [Docs repo](https://github.com/Stellar-IDs/docs) · [Changelog](CHANGELOG.md)
 
 </div>
 
 > **Status — read this first.** Testnet only, v0.x, and **not published to npm yet**. The sign-in flow
 > has been exercised end to end in the demo with a **throwaway keypair**; it has **not** been verified with a
-> real browser-extension wallet (Freighter, xBull, …). There is no hosted demo yet — run it locally.
+> real browser-extension wallet (Freighter, xBull, …). Try the **[hosted demo](https://stellar-ids.github.io/frontend/)**
+> (testnet, throwaway wallet).
+
+<p align="center">
+  <img src="demo/demo.gif" width="640" alt="The demo on testnet: pick a throwaway wallet, register its did:stellar DID, sign in, issue a credential, then revoke it and watch the badge change from Valid to Revoked">
+</p>
+<p align="center"><sub>Recorded from the hosted demo on testnet.</sub></p>
 
 ---
 
@@ -57,14 +64,15 @@ It deliberately brings no UI-library lock-in: plain React function components an
 
 ```bash
 # once published to npm:
-pnpm add stellar-id-frontend stellar-id-client @stellar/stellar-sdk
+pnpm add stellar-id-frontend stellar-id-client @stellar/stellar-sdk@^16.4.1
 ```
 
-React 18 or 19 is a peer dependency. Until the package is published, build and pack it locally:
+React 18 or 19 is a peer dependency. `stellar-id-client` is on npm; this package is not yet. Until it is,
+build and pack it from a clone of this repo, then install the tarball in place of `stellar-id-frontend`:
 
 ```bash
-pnpm install --frozen-lockfile   # needs stellar-id-client resolvable (see Development)
-pnpm build && pnpm pack
+pnpm install --frozen-lockfile
+pnpm build && pnpm pack          # creates stellar-id-frontend-0.1.0.tgz
 ```
 
 ## Quick start
@@ -216,10 +224,14 @@ prerenders.
 Browser-extension wallets are **not wired into the demo yet**. Playwright end-to-end tests cover an offline run
 and the full testnet flow.
 
+**Hosted:** <https://stellar-ids.github.io/frontend/>, a static export deployed to GitHub Pages from `main` by
+`.github/workflows/deploy.yml`.
+
 ```bash
 cd demo
 pnpm install
-pnpm dev                # http://localhost:3000
+pnpm dev                                 # http://localhost:3000
+DEMO_STATIC_EXPORT=1 pnpm build          # the static export that is deployed (out/, base path /frontend)
 ```
 
 ## Development
@@ -235,8 +247,7 @@ pnpm storybook          # http://localhost:6006
 cd demo && pnpm build && pnpm e2e    # Playwright; the testnet test needs network access
 ```
 
-> **Dependency note.** This package depends on `stellar-id-client ^0.1.0`. Until that version is published to
-> npm, install it from a locally built tarball.
+> **Dependency note.** This package depends on `stellar-id-client ^0.1.0`, which installs from npm.
 
 Conventions: function components, accessible by default, styling through CSS variables only, SSR-safe modules,
 a happy-path and a failure-path test for every public export.
@@ -255,6 +266,7 @@ src/
 ├── theme/variables.css           # --sid-* tokens, light + dark
 └── index.ts                      # public API
 demo/                             # Next.js demo + Playwright e2e
+.github/workflows/                # ci.yml (verify), deploy.yml (demo → GitHub Pages)
 ```
 
 ## Implemented, and not yet

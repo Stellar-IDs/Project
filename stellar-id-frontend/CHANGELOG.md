@@ -5,6 +5,17 @@ versions follow [SemVer](https://semver.org/). Not published to npm yet. Testnet
 
 ## [Unreleased]
 
+### Added
+- Hosted demo at https://stellar-ids.github.io/frontend/: a static export
+  (`DEMO_STATIC_EXPORT=1`) deployed to GitHub Pages by `.github/workflows/deploy.yml`.
+- Demo page styles built only on the `--sid-*` tokens, and `demo/demo.gif`
+  (recorded from the hosted demo) in the README.
+
+### Changed
+- Demo reads `?demowallet=1` in the browser instead of through server-side
+  `searchParams`, so the page prerenders statically.
+- README: the client installs from npm; only this package still needs a tarball.
+
 ### Fixed
 - Demo: registers the wallet's DID before sign-in (new wallets previously could
   not sign in); an invalid pasted secret shows an inline error instead of a

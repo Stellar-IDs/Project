@@ -12,13 +12,18 @@ profile, issues and anchors a demo credential, revokes it, and shows the
 or a pasted testnet secret. Browser-extension wallets (Freighter etc. via
 `WalletsKitSigner`) are **not wired into this demo yet**.
 
-**Not deployed:** the demo has no public URL yet. Run it locally.
+**Hosted:** <https://stellar-ids.github.io/frontend/> (add `?demowallet=1` to
+start with the auto-funded wallet). It is a static export:
+`DEMO_STATIC_EXPORT=1 pnpm build` writes `out/` with the `/frontend` base
+path, and `.github/workflows/deploy.yml` publishes it to GitHub Pages on every
+push to `main`.
 
 ## Run
 
 ```bash
 pnpm dev            # http://localhost:3000
 pnpm build && pnpm start
+DEMO_STATIC_EXPORT=1 pnpm build   # static export into out/ (what is deployed)
 ```
 
 ## End-to-end tests (Playwright)
