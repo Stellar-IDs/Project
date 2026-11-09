@@ -1,11 +1,11 @@
 # Roadmap — frontend
 
 Where the React components stand and what comes next. No dates are promised; this file is updated as items land.
-Status: **testnet only, v0.x, not on npm yet.**
+Status: **testnet only, v0.x.**
 
-## Done (0.1.0)
+## Done (0.1.0, on npm)
 
-- `SessionProvider`, `IdentityLogin`, `IdentityProfile`, `CredentialBadge`, `withAuth` and the query hooks, themed
+- [`stellar-id-frontend@0.1.0`](https://www.npmjs.com/package/stellar-id-frontend): `SessionProvider`, `IdentityLogin`, `IdentityProfile`, `CredentialBadge`, `withAuth` and the query hooks, themed
   through `--sid-*` CSS variables (light and dark); 26 unit tests including axe checks; Storybook stories.
 - The [hosted demo](https://stellar-ids.github.io/frontend/) runs the full testnet flow (register a DID, sign in,
   issue and revoke a credential), covered by Playwright end-to-end tests.
@@ -23,7 +23,6 @@ Each issue has a `TODO(wave: frontend-N)` marker at its plug-in point in the cod
 
 ## Maintainer track
 
-- Publish `stellar-id-frontend@0.1.0` to npm.
 - Wire a browser-extension wallet (`WalletsKitSigner`) into the demo once client #2 has verified real wallets.
 - axe checks in Storybook; Changesets for releases.
 

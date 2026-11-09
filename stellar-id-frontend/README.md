@@ -7,14 +7,16 @@
 [![CI](https://github.com/Stellar-IDs/frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/Stellar-IDs/frontend/actions/workflows/ci.yml)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 ![Network](https://img.shields.io/badge/network-testnet-orange)
-![Status](https://img.shields.io/badge/status-v0.x%20·%20not%20on%20npm%20yet-yellow)
+[![npm](https://img.shields.io/npm/v/stellar-id-frontend)](https://www.npmjs.com/package/stellar-id-frontend)
+![Status](https://img.shields.io/badge/status-v0.x-yellow)
 [![Demo](https://github.com/Stellar-IDs/frontend/actions/workflows/deploy.yml/badge.svg)](https://stellar-ids.github.io/frontend/)
 
 **[Live demo](https://stellar-ids.github.io/frontend/)** · [Docs site](https://stellar-ids.github.io/docs/) · [Core contract](https://github.com/Stellar-IDs/core) · [Client SDK](https://github.com/Stellar-IDs/client) · [Docs repo](https://github.com/Stellar-IDs/docs) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
 
 </div>
 
-> **Status — read this first.** Testnet only, v0.x, and **not published to npm yet**. The sign-in flow
+> **Status — read this first.** Testnet only, v0.x. Published on npm as
+> [`stellar-id-frontend@0.1.0`](https://www.npmjs.com/package/stellar-id-frontend). The sign-in flow
 > has been exercised end to end in the demo with a **throwaway keypair**; it has **not** been verified with a
 > real browser-extension wallet (Freighter, xBull, …). Try the **[hosted demo](https://stellar-ids.github.io/frontend/)**
 > (testnet, throwaway wallet).
@@ -63,17 +65,11 @@ It deliberately brings no UI-library lock-in: plain React function components an
 ## Install
 
 ```bash
-# once published to npm:
 pnpm add stellar-id-frontend stellar-id-client @stellar/stellar-sdk@^16.4.1
 ```
 
-React 18 or 19 is a peer dependency. `stellar-id-client` is on npm; this package is not yet. Until it is,
-build and pack it from a clone of this repo, then install the tarball in place of `stellar-id-frontend`:
-
-```bash
-pnpm install --frozen-lockfile
-pnpm build && pnpm pack          # creates stellar-id-frontend-0.1.0.tgz
-```
+React 18 or 19 is a peer dependency. `@stellar/stellar-sdk@^16.4.1` matches the client's own range, so a single
+copy is installed.
 
 ## Quick start
 

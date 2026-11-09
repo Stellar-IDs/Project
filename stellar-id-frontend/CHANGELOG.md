@@ -3,9 +3,12 @@
 All notable changes to `stellar-id-frontend`. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [SemVer](https://semver.org/). Testnet only.
 
-## [0.1.0] - 2026-11-09
+## [0.1.0] - 2026-11-08
 
-Tag `v0.1.0`. **Not on npm yet**: the npm release will be published from this tag.
+On npm as [`stellar-id-frontend@0.1.0`](https://www.npmjs.com/package/stellar-id-frontend), published
+2026-11-08. Git tag `v0.1.0` (2026-11-09) builds a byte-identical `dist/`. The hosted demo, demo styles,
+demo GIF and `ROADMAP.md` landed in the repository with that tag; none of them ship in the npm package, and the
+README on npm is the one from before publishing.
 
 ### Added
 - `SessionProvider`, `IdentityLogin`, `IdentityProfile` / `IdentityProfileView`,
