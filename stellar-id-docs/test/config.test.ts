@@ -13,4 +13,9 @@ describe("docusaurus config", () => {
   it("targets testnet-era documentation only", () => {
     expect(config.tagline).toMatch(/testnet|Stellar/i);
   });
+
+  it("is served from the GitHub Pages project path", () => {
+    expect(config.url).toBe("https://stellar-ids.github.io");
+    expect(config.baseUrl).toBe("/docs/");
+  });
 });

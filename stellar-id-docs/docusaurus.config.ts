@@ -1,12 +1,15 @@
 import type { Config } from "@docusaurus/types";
 
-// The `url` is a placeholder: set the real deployment URL when the site is
-// hosted.
+// Hosted on GitHub Pages by .github/workflows/deploy.yml:
+// https://stellar-ids.github.io/docs/
 const config: Config = {
   title: "Stellar Identity Suite",
   tagline: "Decentralized identity for Stellar — DIDs, verifiable credentials, and sign-in",
-  url: "https://docs.stellar-id.example",
-  baseUrl: "/",
+  url: "https://stellar-ids.github.io",
+  baseUrl: "/docs/",
+  organizationName: "Stellar-IDs",
+  projectName: "docs",
+  trailingSlash: false,
   // Future flags: v4 mode uses the Rspack-based faster bundler.
   // Requires the @docusaurus/faster dependency (see package.json).
   future: {
