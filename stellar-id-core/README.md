@@ -9,13 +9,18 @@
 ![Network](https://img.shields.io/badge/network-testnet-orange)
 ![Status](https://img.shields.io/badge/status-v0.x%20·%20unaudited-yellow)
 
-[Method spec](docs/METHOD_SPEC.md) · [Security review](docs/SECURITY_REVIEW.md) · [Fee measurements](docs/COSTS.md) · [Changelog](CHANGELOG.md)
+**[Live demo](https://stellar-ids.github.io/frontend/)** · [Docs site](https://stellar-ids.github.io/docs/) · [Method spec](docs/METHOD_SPEC.md) · [Security review](docs/SECURITY_REVIEW.md) · [Fee measurements](docs/COSTS.md) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
 
 </div>
 
 > **Status — read this first.** This contract runs on **Stellar testnet only**. It has had a
 > self-review ([`docs/SECURITY_REVIEW.md`](docs/SECURITY_REVIEW.md)) but **no independent audit**,
 > and mainnet deployment is an explicit non-goal for v1. Do not anchor anything of real value to it.
+
+<p align="center">
+  <a href="https://stellar-ids.github.io/frontend/"><img src="https://raw.githubusercontent.com/Stellar-IDs/frontend/main/demo/demo.gif" width="560" alt="The hosted demo calling this contract on testnet: register a did:stellar DID, sign in, anchor a credential, revoke it"></a>
+</p>
+<p align="center"><sub>The <a href="https://stellar-ids.github.io/frontend/">hosted demo</a> calling this contract on testnet: register a DID, sign in, anchor a credential, revoke it.</sub></p>
 
 ---
 
