@@ -7,15 +7,16 @@
 [![CI](https://github.com/Stellar-IDs/client/actions/workflows/ci.yml/badge.svg)](https://github.com/Stellar-IDs/client/actions/workflows/ci.yml)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 ![Network](https://img.shields.io/badge/network-testnet-orange)
-![Status](https://img.shields.io/badge/status-v0.x%20·%20not%20on%20npm%20yet-yellow)
+[![npm](https://img.shields.io/npm/v/stellar-id-client)](https://www.npmjs.com/package/stellar-id-client)
+![Status](https://img.shields.io/badge/status-v0.x-yellow)
 
-[Core contract](https://github.com/Stellar-IDs/core) · [Frontend](https://github.com/Stellar-IDs/frontend) · [Docs](https://github.com/Stellar-IDs/docs) · [Changelog](CHANGELOG.md)
+**[Docs site](https://stellar-ids.github.io/docs/)** · [Live demo](https://stellar-ids.github.io/frontend/) · [Core contract](https://github.com/Stellar-IDs/core) · [Frontend](https://github.com/Stellar-IDs/frontend) · [Docs repo](https://github.com/Stellar-IDs/docs) · [Changelog](CHANGELOG.md)
 
 </div>
 
-> **Status — read this first.** Everything here targets **Stellar testnet**. The package is **not
-> published to npm yet**, so `npm install stellar-id-client` will not work until it is. Mainnet is an
-> explicit non-goal for v1, and the contract underneath has had a self-review but no independent audit.
+> **Status — read this first.** Everything here targets **Stellar testnet**. Published on npm as
+> [`stellar-id-client@0.1.0`](https://www.npmjs.com/package/stellar-id-client). Mainnet is an explicit
+> non-goal for v1, and the contract underneath has had a self-review but no independent audit.
 
 ---
 
@@ -62,18 +63,12 @@ to a Soroban RPC node; writes are simulated, signed by your signer and submitted
 ## Install
 
 ```bash
-# once published to npm:
-pnpm add stellar-id-client
+pnpm add stellar-id-client @stellar/stellar-sdk@^16.4.1
+# or: npm install stellar-id-client @stellar/stellar-sdk@^16.4.1
 ```
 
-Until then, build and pack it locally:
-
-```bash
-pnpm install --frozen-lockfile
-pnpm build && pnpm pack          # creates stellar-id-client-0.1.0.tgz
-# in your project:
-pnpm add /path/to/stellar-id-client-0.1.0.tgz
-```
+`@stellar/stellar-sdk` is only needed directly if your code imports it (the quick start below does, for
+`StrKey`); `^16.4.1` matches the client's own range, so a single copy is installed.
 
 Requires **Node 20 or newer**. The package ships ESM and CommonJS builds with type declarations.
 

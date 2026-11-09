@@ -1,9 +1,18 @@
 # Changelog
 
 All notable changes to `stellar-id-client`. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
-versions follow [SemVer](https://semver.org/). Not published to npm yet. Testnet only.
+versions follow [SemVer](https://semver.org/). Testnet only.
 
 ## [Unreleased]
+
+### Changed
+- README: install from npm; links to the hosted docs site and demo.
+
+## [0.1.0] - 2026-11-07
+
+First npm release ([`stellar-id-client@0.1.0`](https://www.npmjs.com/package/stellar-id-client)).
+The API below was in place by 2026-10-15; the fixes and changes listed here
+landed before the package was published.
 
 ### Fixed
 - Contract errors returned as a simulation `Result` (`Err({ message })`) are now
@@ -19,10 +28,6 @@ versions follow [SemVer](https://semver.org/). Not published to npm yet. Testnet
 
 ### Added
 - Gateway unit tests; integration test asserts the typed `DidNotFoundError` live.
-
-## [0.1.0] - 2026-10-15
-
-### Added
 - DID API: `parseDid`/`formatDid`, `createIdentity`, `resolveIdentity`, `updateIdentity`,
   `deactivateIdentity`, W3C DID document mapping (`toW3CDocument`). Controller
   rotation is contract-only (no SDK wrapper yet).
