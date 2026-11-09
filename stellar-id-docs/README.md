@@ -7,13 +7,15 @@
 [![CI](https://github.com/Stellar-IDs/docs/actions/workflows/ci.yml/badge.svg)](https://github.com/Stellar-IDs/docs/actions/workflows/ci.yml)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 ![Network](https://img.shields.io/badge/network-testnet-orange)
-![Status](https://img.shields.io/badge/status-v0.x%20·%20not%20hosted%20yet-yellow)
+[![Deploy](https://github.com/Stellar-IDs/docs/actions/workflows/deploy.yml/badge.svg)](https://github.com/Stellar-IDs/docs/actions/workflows/deploy.yml)
+![Status](https://img.shields.io/badge/status-v0.x-yellow)
 
-[Core contract](https://github.com/Stellar-IDs/core) · [Client SDK](https://github.com/Stellar-IDs/client) · [Frontend](https://github.com/Stellar-IDs/frontend) · [Changelog](CHANGELOG.md)
+**[Live site](https://stellar-ids.github.io/docs/)** · [Live demo](https://stellar-ids.github.io/frontend/) · [Core contract](https://github.com/Stellar-IDs/core) · [Client SDK](https://github.com/Stellar-IDs/client) · [Frontend](https://github.com/Stellar-IDs/frontend) · [Changelog](CHANGELOG.md)
 
 </div>
 
-> **Status — read this first.** The site is **not hosted yet**: build and preview it locally (below). Every
+> **Status — read this first.** The site is live at **https://stellar-ids.github.io/docs/**, deployed from `main`
+> by `.github/workflows/deploy.yml` (GitHub Pages); you can also build and preview it locally (below). Every
 > guide targets **Stellar testnet** and is written to describe only what is implemented and tested. Where
 > something is untested — for example the real-wallet path in the React quick start — the page says so.
 
@@ -108,9 +110,10 @@ docs/
 src/
 ├── css/custom.css
 └── pages/index.tsx    # landing page
-docusaurus.config.ts   # site config (url is a placeholder until it is hosted)
+docusaurus.config.ts   # site config (GitHub Pages url, /docs/ base path)
 sidebars.ts            # navigation
 test/                  # config smoke tests
+.github/workflows/      # ci.yml (verify), deploy.yml (GitHub Pages)
 ```
 
 ## Keeping docs honest

@@ -9,10 +9,11 @@ sidebar_position: 1
 
 | core | client (`stellar-id-client`) | frontend (`stellar-id-frontend`) | docs | Notes |
 |---|---|---|---|---|
-| 0.1.0 (unreleased) | 0.1.0 (unpublished) | 0.1.0 (unpublished) | 0.1.0 | Testnet contract `CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT` |
+| 0.1.0 (tag `v0.1.0`) | 0.1.0 (npm) | 0.1.0 (not on npm yet) | 0.1.0 | Testnet contract `CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT` |
 
-Nothing is released yet: there is no npm package and no final core tag.
-The client's vendored bindings target the contract above.
+`stellar-id-client@0.1.0` is on npm (published 2026-11-07);
+`stellar-id-frontend` is not published yet. The client's vendored bindings
+target the contract above.
 
 ## Contract → SDK Coupling
 
@@ -20,8 +21,10 @@ The SDK uses **generated TypeScript bindings** (vendored in
 `src/generated/`) produced by `stellar contract bindings typescript`
 against the deployed contract. On every contract change:
 
-1. Regenerate: `./scripts/sync-bindings.sh`
-2. Commit the updated `stellar-id-client/src/generated/index.ts`
+1. Regenerate: `stellar contract bindings typescript --network testnet
+   --contract-id <id> --output-dir <tmp>`, then copy the generated
+   `src/index.ts` over `src/generated/index.ts` in the client repo
+2. Commit the updated `src/generated/index.ts`
 3. Bump `stellar-id-client` version
 4. Update `stellar-id-frontend` to the new client version
 

@@ -1,9 +1,21 @@
 # Changelog
 
 All notable changes to `stellar-id-docs`. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-The site is not hosted yet.
+Live at https://stellar-ids.github.io/docs/.
 
 ## [Unreleased]
+
+### Added
+- Hosted on GitHub Pages (`https://stellar-ids.github.io/docs/`), deployed from `main`
+  by `.github/workflows/deploy.yml`.
+
+### Changed
+- Node quick start installs `stellar-id-client` from npm; re-run verbatim from a clean
+  folder against testnet on 2026-11-09.
+- Status lines: the client is on npm, the frontend is not yet; the React quick start
+  links the hosted demo.
+- Compatibility matrix: records the npm release, and the bindings regeneration steps
+  no longer point at a monorepo-only script.
 
 ### Fixed
 - Node quick start: one runnable script, verified against testnet from a clean

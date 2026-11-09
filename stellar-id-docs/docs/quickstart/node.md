@@ -19,20 +19,11 @@ create a DID, resolve it, issue a credential, verify it, revoke it.
 mkdir stellar-id-quickstart && cd stellar-id-quickstart
 npm init -y
 npm pkg set type=module
+npm install stellar-id-client @stellar/stellar-sdk@^16.4.1
 ```
 
-`stellar-id-client` is **not published to npm yet**. Until it is, build a
-tarball from the source repo and install that:
-
-```bash
-# in a clone of Stellar-IDs/client
-pnpm install && pnpm build && pnpm pack   # → stellar-id-client-0.1.0.tgz
-
-# back in stellar-id-quickstart
-npm install /path/to/stellar-id-client-0.1.0.tgz @stellar/stellar-sdk@^16.4.1
-```
-
-Once it is published, this becomes `npm install stellar-id-client @stellar/stellar-sdk`.
+`@stellar/stellar-sdk@^16.4.1` is the range the client itself uses, so npm
+installs a single copy.
 
 ## 2. Create and fund a testnet account
 
