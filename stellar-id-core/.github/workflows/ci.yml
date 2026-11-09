@@ -23,7 +23,8 @@ jobs:
       - name: Install Stellar CLI
         shell: bash
         run: |
-          VERSION="$(curl -fsSL https://api.github.com/repos/stellar/soroban-cli/releases/latest | jq -r .tag_name | sed 's/^v//')"
+          # Pinned: 28.1.0 built the deployed wasm, and its major matches soroban-sdk 28.
+          VERSION="28.1.0"
           curl -fsSL "https://github.com/stellar/soroban-cli/releases/download/v${VERSION}/stellar-cli-${VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
             | tar -xz -C /tmp
           sudo install -m 0755 /tmp/stellar /usr/local/bin/stellar
