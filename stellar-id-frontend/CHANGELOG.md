@@ -1,36 +1,24 @@
 # Changelog
 
 All notable changes to `stellar-id-frontend`. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
-versions follow [SemVer](https://semver.org/). Not published to npm yet. Testnet only.
+versions follow [SemVer](https://semver.org/). Testnet only.
 
-## [Unreleased]
+## [0.1.0] - 2026-11-09
 
-### Added
-- Hosted demo at https://stellar-ids.github.io/frontend/: a static export
-  (`DEMO_STATIC_EXPORT=1`) deployed to GitHub Pages by `.github/workflows/deploy.yml`.
-- Demo page styles built only on the `--sid-*` tokens, and `demo/demo.gif`
-  (recorded from the hosted demo) in the README.
-
-### Changed
-- Demo reads `?demowallet=1` in the browser instead of through server-side
-  `searchParams`, so the page prerenders statically.
-- README: the client installs from npm; only this package still needs a tarball.
-
-### Fixed
-- Demo: registers the wallet's DID before sign-in (new wallets previously could
-  not sign in); an invalid pasted secret shows an inline error instead of a
-  dead-end page.
-- Demo: Next.js upgraded to `^16.4.1` (critical advisories in 16.4.0).
-
-### Added
-- Playwright e2e for the demo: offline setup test and the full testnet flow
-  (throwaway keypair in place of a wallet extension).
-
-## [0.1.0] - 2026-10-15
+Tag `v0.1.0`. **Not on npm yet**: the npm release will be published from this tag.
 
 ### Added
 - `SessionProvider`, `IdentityLogin`, `IdentityProfile` / `IdentityProfileView`,
   `CredentialBadge`, `withAuth`.
 - Hooks: `useIdentity`, `useIdentityStatus`, `useDidDocument`, `useCredential`.
 - CSS-variable theming with dark mode, Storybook stories, axe checks in tests.
-- Next.js demo app (`demo/`).
+- Next.js demo app (`demo/`): registers the wallet's DID before sign-in, issues and
+  revokes a credential, and shows an inline error for an invalid pasted secret.
+  Next.js `^16.4.1` (critical advisories in 16.4.0).
+- Hosted demo at https://stellar-ids.github.io/frontend/: a static export
+  (`DEMO_STATIC_EXPORT=1`; `?demowallet=1` is read in the browser) deployed to
+  GitHub Pages by `.github/workflows/deploy.yml`. Page styles use only the
+  `--sid-*` tokens; `demo/demo.gif` in the README was recorded from it.
+- Playwright e2e for the demo: offline setup test and the full testnet flow
+  (throwaway keypair in place of a wallet extension).
+- `ROADMAP.md`.
