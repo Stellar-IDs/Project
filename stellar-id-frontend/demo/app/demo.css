@@ -1,0 +1,77 @@
+/*
+ * Page shell for the demo (headings, banner, wallet setup form). Uses the
+ * library's design tokens only, so it follows any theme override.
+ */
+body {
+  margin: 0;
+  background: var(--sid-color-background);
+  color: var(--sid-color-text);
+  font-family: var(--sid-font-family);
+  line-height: 1.5;
+}
+
+main {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: calc(var(--sid-spacing) * 2) var(--sid-spacing);
+}
+
+h1 {
+  font-size: 1.75rem;
+  margin: 0 0 var(--sid-spacing);
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin: calc(var(--sid-spacing) * 2) 0 var(--sid-spacing);
+}
+
+a {
+  color: var(--sid-color-primary);
+}
+
+.banner {
+  padding: calc(var(--sid-spacing) * 0.75) var(--sid-spacing);
+  border-radius: var(--sid-radius);
+  background: var(--sid-color-warning-bg);
+  color: var(--sid-color-warning);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: var(--sid-spacing) 0;
+}
+
+input {
+  font: inherit;
+  padding: calc(var(--sid-spacing) * 0.5);
+  border: 1px solid var(--sid-color-border);
+  border-radius: var(--sid-radius);
+  background: var(--sid-color-background);
+  color: var(--sid-color-text);
+}
+
+/* Demo-only buttons; the library's own buttons keep their .sid-button style. */
+main button:not(.sid-button) {
+  font: inherit;
+  padding: calc(var(--sid-spacing) * 0.5) var(--sid-spacing);
+  margin-right: calc(var(--sid-spacing) * 0.5);
+  border: 1px solid var(--sid-color-primary);
+  border-radius: var(--sid-radius);
+  background: var(--sid-color-primary);
+  color: var(--sid-color-primary-text);
+  cursor: pointer;
+}
+
+a:focus-visible,
+input:focus-visible,
+main button:not(.sid-button):focus-visible {
+  outline: 2px solid var(--sid-color-primary);
+  outline-offset: 2px;
+}
+
+[role="alert"] {
+  color: var(--sid-color-error);
+}

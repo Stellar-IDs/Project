@@ -3,16 +3,13 @@ import { DemoFlow } from "./demo-flow";
 
 /**
  * Demo home: testnet banner, sign-in, profile, and the credential
- * issue/verify/revoke walkthrough.
+ * issue/verify/revoke walkthrough. Rendered statically; `?demowallet=1` is
+ * read in the browser by `DemoProviders`, so the page also works as a
+ * static export (GitHub Pages).
  */
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ demowallet?: string }>;
-}) {
-  const params = (await searchParams) ?? {};
+export default function HomePage() {
   return (
-    <DemoProviders autoWallet={params["demowallet"] === "1"}>
+    <DemoProviders>
       <main>
         <h1>Stellar Identity Demo</h1>
         <p className="banner" role="note">

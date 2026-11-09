@@ -65,23 +65,24 @@ async function ensureDid(signer: Signer): Promise<void> {
 }
 
 /**
- * Demo providers: session with a pluggable demo signer.
+ * True when the page URL asks for the auto-funded demo wallet.
+ *
+ * @returns Whether `?demowallet=1` is present.
+ */
+function wantsAutoWallet(): boolean {
+  return new URLSearchParams(window.location.search).get("demowallet") === "1";
+}
+
+/**
+ * Demo providers: session with a pluggable demo signer. With `?demowallet=1`
+ * in the URL, a throwaway wallet is funded and used automatically.
  *
  * @param children - Page content.
- * @param autoWallet - Fund and use a throwaway wallet automatically.
  */
-export function DemoProviders({
-  children,
-  autoWallet,
-}: {
-  children: React.ReactNode;
-  autoWallet: boolean;
-}) {
+export function DemoProviders({ children }: { children: React.ReactNode }) {
   const [secret, setSecret] = useState("");
   const [signer, setSigner] = useState<Signer | null>(null);
-  const [booting, setBooting] = useState<string | null>(
-    autoWallet ? "Funding demo wallet…" : null,
-  );
+  const [booting, setBooting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [secretError, setSecretError] = useState<string | null>(null);
 
@@ -103,10 +104,11 @@ export function DemoProviders({
   };
 
   useEffect(() => {
-    if (!autoWallet || signer !== null) {
+    if (signer !== null || !wantsAutoWallet()) {
       return;
     }
     let cancelled = false;
+    setBooting("Funding demo wallet…");
     fundedThrowaway()
       .then((next) => {
         if (!cancelled) {
@@ -124,7 +126,7 @@ export function DemoProviders({
     };
     // `adopt` is left out of the deps on purpose: it only touches state
     // setters, and re-running this effect would fund another wallet.
-  }, [autoWallet, signer]);
+  }, [signer]);
 
   const useManual = () => {
     const trimmed = secret.trim();
