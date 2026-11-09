@@ -17,11 +17,8 @@ Add wallet-based sign-in and identity UI to a React/Next.js app.
 pnpm add stellar-id-frontend stellar-id-client @stellar/stellar-sdk@^16.4.1
 ```
 
-`stellar-id-client` is on npm, but `stellar-id-frontend` is **not published
-yet**. Until it is, build a tarball in a clone of
-[Stellar-IDs/frontend](https://github.com/Stellar-IDs/frontend)
-(`pnpm install && pnpm build && pnpm pack` → `stellar-id-frontend-0.1.0.tgz`)
-and install that file in place of `stellar-id-frontend`.
+Both packages are on npm. `@stellar/stellar-sdk@^16.4.1` matches the range
+the client uses, so a single copy is installed.
 
 ## 2. Wrap Your App with `SessionProvider`
 

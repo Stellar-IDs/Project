@@ -6,8 +6,8 @@ sidebar_position: 0
 
 # Stellar Identity & Authentication Suite
 
-**Status: testnet only, v0.x, unaudited.** `stellar-id-client` is on npm;
-`stellar-id-frontend` is not published yet. Try the
+**Status: testnet only, v0.x, unaudited.** `stellar-id-client` and
+`stellar-id-frontend` are on npm. Try the
 [testnet demo](https://stellar-ids.github.io/frontend/).
 
 A reusable identity layer for Stellar, in four repositories:

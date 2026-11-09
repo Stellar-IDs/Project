@@ -60,8 +60,8 @@ to an app, and for contributors who need to understand how the pieces fit togeth
 | **Migration** | `migration/from-auth` | Moving from password / OAuth sign-in to challenge/response |
 | **Reference** | `reference/compatibility`, `reference/contributing` | Version compatibility matrix and how to contribute |
 
-The Node quick start has been **run verbatim from a clean folder against testnet** with a packed client
-tarball. The React quick start's real-wallet path has not been tested, and says so.
+The Node quick start has been **run verbatim from a clean folder against testnet** with the client
+installed from npm (2026-11-09). The React quick start's real-wallet path has not been tested, and says so.
 
 ## Run it locally
 

@@ -9,8 +9,8 @@ export default function HomePage() {
         TypeScript SDK, React components, and documentation.
       </p>
       <p>
-        <strong>Status:</strong> testnet only, v0.x, unaudited. <code>stellar-id-client</code> is on
-        npm; <code>stellar-id-frontend</code> is not published yet.
+        <strong>Status:</strong> testnet only, v0.x, unaudited. <code>stellar-id-client</code> and{" "}
+        <code>stellar-id-frontend</code> are on npm.
       </p>
       <p>
         <Link to="docs/intro">Read the docs</Link> ·{" "}

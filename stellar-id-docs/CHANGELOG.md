@@ -3,6 +3,14 @@
 All notable changes to `stellar-id-docs`. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Live at https://stellar-ids.github.io/docs/.
 
+## [Unreleased]
+
+### Fixed
+- `stellar-id-frontend` has been on npm since 2026-11-08, but the intro, home page, React quick start and
+  compatibility matrix said it was unpublished. The React quick start now installs it directly.
+- Compatibility matrix: core is `0.1.1` (tag `v0.1.1`), the release that describes the testnet contract.
+- README: the Node quick start was last verified with the client from npm, not a tarball.
+
 ## [0.1.0] - 2026-11-09
 
 Tag `v0.1.0`. First hosted release.

@@ -9,11 +9,11 @@ sidebar_position: 1
 
 | core | client (`stellar-id-client`) | frontend (`stellar-id-frontend`) | docs | Notes |
 |---|---|---|---|---|
-| 0.1.0 (tag `v0.1.0`) | 0.1.0 (npm) | 0.1.0 (not on npm yet) | 0.1.0 | Testnet contract `CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT` |
+| 0.1.1 (tag `v0.1.1`) | 0.1.0 (npm) | 0.1.0 (npm) | 0.1.0 | Testnet contract `CB2ZHW3TBCVXQ22CLWUTIOJVCIS4CLGFX4WHLZQ663XSGKVYKFUBLZAT` |
 
-`stellar-id-client@0.1.0` is on npm (published 2026-11-07);
-`stellar-id-frontend` is not published yet. The client's vendored bindings
-target the contract above.
+`stellar-id-client@0.1.0` (published 2026-11-07) and
+`stellar-id-frontend@0.1.0` (published 2026-11-08) are on npm. The client's
+vendored bindings target the contract above, which core `v0.1.1` describes.
 
 ## Contract → SDK Coupling
 
