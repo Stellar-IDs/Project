@@ -10,7 +10,7 @@
 [![npm](https://img.shields.io/npm/v/stellar-id-client)](https://www.npmjs.com/package/stellar-id-client)
 ![Status](https://img.shields.io/badge/status-v0.x-yellow)
 
-**[Docs site](https://stellar-ids.github.io/docs/)** · [Live demo](https://stellar-ids.github.io/frontend/) · [Core contract](https://github.com/Stellar-IDs/core) · [Frontend](https://github.com/Stellar-IDs/frontend) · [Docs repo](https://github.com/Stellar-IDs/docs) · [Changelog](CHANGELOG.md)
+**[Docs site](https://stellar-ids.github.io/docs/)** · [Live demo](https://stellar-ids.github.io/frontend/) · [Core contract](https://github.com/Stellar-IDs/core) · [Frontend](https://github.com/Stellar-IDs/frontend) · [Docs repo](https://github.com/Stellar-IDs/docs) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
 
 </div>
 
