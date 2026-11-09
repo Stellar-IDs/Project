@@ -8,13 +8,14 @@
 ![Network](https://img.shields.io/badge/network-testnet-orange)
 ![Status](https://img.shields.io/badge/status-v0.x%20·%20unaudited-yellow)
 [![npm](https://img.shields.io/npm/v/stellar-id-client?label=stellar-id-client)](https://www.npmjs.com/package/stellar-id-client)
+[![npm](https://img.shields.io/npm/v/stellar-id-frontend?label=stellar-id-frontend)](https://www.npmjs.com/package/stellar-id-frontend)
 
 **[Live demo](https://stellar-ids.github.io/frontend/)** · **[Docs site](https://stellar-ids.github.io/docs/)** · [Contract on testnet](https://github.com/Stellar-IDs/core#deployment)
 
 </div>
 
 > **Status.** Testnet only, v0.x, self-reviewed but **not independently audited**. Mainnet is an explicit non-goal
-> for v1. `stellar-id-client@0.1.0` is on npm; `stellar-id-frontend` is not published yet.
+> for v1. `stellar-id-client` and `stellar-id-frontend` 0.1.0 are on npm.
 
 <p align="center">
   <img src="stellar-id-frontend/demo/demo.gif" width="640" alt="The hosted demo on testnet: pick a throwaway wallet, register its did:stellar DID, sign in, issue a credential, then revoke it and watch the badge change from Valid to Revoked">
@@ -47,7 +48,7 @@ The suite is developed here as a monorepo and published as four repositories. De
 |---|---|---|---|
 | [**core**](https://github.com/Stellar-IDs/core) | `stellar-id-core/` | Rust (Soroban) | The on-chain registry: DID lifecycle, credential anchoring, revocation, Ed25519 proof checks. 14 public functions, 59 tests. |
 | [**client**](https://github.com/Stellar-IDs/client) | `stellar-id-client/` | TypeScript | The SDK: create / resolve / update / deactivate DIDs, issue / verify / revoke credentials, challenge sign-in, wallet adapters. On npm as [`stellar-id-client`](https://www.npmjs.com/package/stellar-id-client). |
-| [**frontend**](https://github.com/Stellar-IDs/frontend) | `stellar-id-frontend/` | React / Next.js | `SessionProvider`, `IdentityLogin`, `IdentityProfile`, `CredentialBadge`, `withAuth`, CSS-variable theming, and a Next.js demo ([hosted](https://stellar-ids.github.io/frontend/)). npm name `stellar-id-frontend` (not published yet). |
+| [**frontend**](https://github.com/Stellar-IDs/frontend) | `stellar-id-frontend/` | React / Next.js | `SessionProvider`, `IdentityLogin`, `IdentityProfile`, `CredentialBadge`, `withAuth`, CSS-variable theming, and a Next.js demo ([hosted](https://stellar-ids.github.io/frontend/)). On npm as [`stellar-id-frontend`](https://www.npmjs.com/package/stellar-id-frontend). |
 | [**docs**](https://github.com/Stellar-IDs/docs) | `stellar-id-docs/` | Docusaurus | Concepts, quick starts, API references, security guidance. [Live site](https://stellar-ids.github.io/docs/). |
 
 ## How the pieces fit
@@ -77,7 +78,6 @@ flowchart TB
 
 ## What does not work yet
 
-- `stellar-id-frontend` is **not on npm** yet; until it is, it installs from a locally built tarball.
 - **Real browser-extension wallets** (Freighter, xBull, …) have not been tested through the SDK or the demo.
 - No independent security audit; mainnet unsupported.
 - Open contributor work is tracked as Wave issues in each repository (method registration, more proof types,
